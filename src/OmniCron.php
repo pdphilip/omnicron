@@ -256,6 +256,16 @@ class OmniCron
         return max(60, $second->getTimestamp() - $first->getTimestamp());
     }
 
+    /** When the schedule next comes round, as a unix timestamp. */
+    public function nextRunAt(OmniTask $task, ?int $now = null): int
+    {
+        $expression = new CronExpression($task->expression());
+
+        return $expression
+            ->getNextRunDate('@'.($now ?? time()), 0, false, $task->timezone())
+            ->getTimestamp();
+    }
+
     public function store(): RunStore
     {
         return $this->store;

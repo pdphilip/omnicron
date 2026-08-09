@@ -2,6 +2,18 @@
 
 All notable changes to `pdphilip/omnicron` are documented here.
 
+## v0.1.0-beta.3 - 2026-08-09
+
+### Added
+
+- **Dashboard** at `/omnicron/dashboard` - task health cards, the run log
+  with each run's output expandable inline, and manual triggers. Served
+  entirely by the package (single page, vanilla JS polling the JSON API) -
+  no build step, no Inertia/Livewire coupling, works in any Laravel app.
+  Horizon-style authorization: open in local, `viewOmniCron` gate required
+  everywhere else (fails closed).
+- `OmniCron::nextRunAt()` - when a task's schedule next comes round.
+
 ## v0.1.0-beta.2 - 2026-08-09
 
 The run log lives anywhere Eloquent does.

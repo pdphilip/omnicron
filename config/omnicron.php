@@ -34,6 +34,23 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Dashboard
+    |--------------------------------------------------------------------------
+    | A self-contained dashboard at /{path} - task health, the run log with
+    | each run's output, and manual triggers. Served entirely by the package
+    | (no build step, no host-app coupling). Open in local; anywhere else a
+    | `viewOmniCron` gate must exist and pass:
+    |
+    |   Gate::define('viewOmniCron', fn ($user) => $user->isAdmin());
+    */
+    'dashboard' => [
+        'enabled' => true,
+        'path' => 'omnicron/dashboard',
+        'middleware' => ['web'],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Run history
     |--------------------------------------------------------------------------
     | Where runs are logged (the migration creates this table) and how long

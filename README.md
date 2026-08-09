@@ -329,11 +329,25 @@ There is also `'connection' => 'mysql'` for the simpler case of pointing the bun
 
 ---
 
+## Dashboard
+
+`/omnicron/dashboard` — task health cards, the full run log with each run's returned JSON, and manual triggers. Served entirely by the package: no build step, no Inertia/Livewire coupling, works identically whatever your app's frontend is.
+
+Open in `local`. Everywhere else it follows the Horizon convention — define the gate or the dashboard stays 403:
+
+```php
+// AppServiceProvider::boot()
+Gate::define('viewOmniCron', fn ($user) => $user->isAdmin());
+```
+
+Path and middleware live in `config('omnicron.dashboard')`.
+
+---
+
 ## Roadmap
 
 - **Queued tasks** — `queued()` exists on the base class and is reserved; v0 runs every task inline.
 - **Notifications** — `notify()` from inside a task, plus automatic alerts after repeated failures.
-- **Dashboard** — health per task and the run history with each task's returned JSON.
 - **Alternate stores** — the run log sits behind a `RunStore` interface; Redis and remote drivers can slot in without touching the runner.
 
 ## Not a Scheduler Replacement

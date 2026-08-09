@@ -20,6 +20,7 @@ class OmniCronServiceProvider extends PackageServiceProvider
         $package
             ->name('omnicron')
             ->hasConfigFile()
+            ->hasViews()
             ->hasMigration('create_omnicron_runs_table')
             ->hasCommands([
                 MakeTaskCommand::class,
@@ -47,6 +48,9 @@ class OmniCronServiceProvider extends PackageServiceProvider
     {
         if (config('omnicron.endpoint.enabled', true)) {
             $this->loadRoutesFrom(__DIR__.'/../routes/omnicron.php');
+        }
+        if (config('omnicron.dashboard.enabled', true)) {
+            $this->loadRoutesFrom(__DIR__.'/../routes/dashboard.php');
         }
     }
 }
