@@ -1,5 +1,7 @@
 <?php
 
+use PDPhilip\OmniCron\Run\Run;
+
 return [
 
     /*
@@ -35,10 +37,17 @@ return [
     | Run history
     |--------------------------------------------------------------------------
     | Where runs are logged (the migration creates this table) and how long
-    | finished runs are kept. Schedule `omnicron:prune` - or just register
-    | the bundled PruneRuns task - to enforce the window.
+    | finished runs are kept. Schedule `omnicron:prune` to enforce the window.
+    |
+    | 'connection' points the bundled Run model at a non-default database
+    | connection. 'model' swaps the model entirely: Run (SQL, default),
+    | MongoRun (requires mongodb/laravel-mongodb), EsRun (requires
+    | pdphilip/elasticsearch - map the index first, see its docblock), or
+    | any model of your own wearing RunsLifecycle.
     */
     'table' => 'omnicron_runs',
+    'connection' => null,
+    'model' => Run::class,
     'history' => [
         'keep_days' => 90,
     ],

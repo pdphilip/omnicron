@@ -2,6 +2,23 @@
 
 All notable changes to `pdphilip/omnicron` are documented here.
 
+## v0.1.0-beta.2 - 2026-08-09
+
+The run log lives anywhere Eloquent does.
+
+### Added
+
+- `omnicron.model` - the run log is a swappable model. Bundled flavours:
+  `Run` (SQL, default), `MongoRun` (mongodb/laravel-mongodb), `EsRun`
+  (pdphilip/elasticsearch, with `mappingDefinition()` - map the index
+  before the first run lands)
+- `RunsLifecycle` trait - any Eloquent flavour becomes the run log by
+  wearing it
+- `omnicron.connection` - point the bundled SQL model at a secondary
+  connection
+- `EsRun` closes runs through a targeted update rather than a second
+  save on the same instance, which Elasticsearch can silently drop
+
 ## v0.1.0-beta.1 - 2026-08-09
 
 First public beta. The core loop is complete: one heartbeat a minute, tasks

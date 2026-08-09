@@ -5,13 +5,16 @@ namespace PDPhilip\OmniCron\Run;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * One run of one task - the durable log row.
+ * One run of one task - the durable log row, SQL flavour.
  *
  * The row is opened in RUNNING before the work begins and closed by
  * succeed()/fail() afterwards. A run that never closes is the crash
  * evidence the try/catch cannot produce.
  *
- * @property int $id
+ * Non-SQL apps swap the whole model via config('omnicron.model') - see
+ * RunsLifecycle for the five-line MongoDB version.
+ *
+ * @property mixed $id
  * @property string $task
  * @property RunState $state
  * @property int $started_at
@@ -24,52 +27,10 @@ use Illuminate\Database\Eloquent\Model;
  */
 class Run extends Model
 {
-    protected $guarded = [];
+    use RunsLifecycle;
 
-    protected $casts = [
-        'state' => RunState::class,
-        'output' => 'array',
-        'manual' => 'boolean',
-        'started_at' => 'integer',
-        'finished_at' => 'integer',
-        'duration_ms' => 'integer',
-    ];
-
-    public function getTable(): string
+    public function getConnectionName(): ?string
     {
-        return config('omnicron.table', 'omnicron_runs');
-    }
-
-    public function succeed(array $output, float $startedMicrotime): void
-    {
-        $this->close(RunState::OK, $startedMicrotime);
-        $this->output = $output;
-        $this->save();
-    }
-
-    public function fail(string $error, float $startedMicrotime): void
-    {
-        $this->close(RunState::FAILED, $startedMicrotime);
-        $this->error = mb_substr($error, 0, 2000);
-        $this->save();
-    }
-
-    private function close(RunState $state, float $startedMicrotime): void
-    {
-        $this->state = $state;
-        $this->finished_at = time();
-        $this->duration_ms = (int) round((microtime(true) - $startedMicrotime) * 1000);
-    }
-
-    public function durationLabel(): ?string
-    {
-        if ($this->duration_ms === null) {
-            return null;
-        }
-        if ($this->duration_ms < 1000) {
-            return $this->duration_ms.'ms';
-        }
-
-        return round($this->duration_ms / 1000, 1).'s';
+        return config('omnicron.connection') ?? parent::getConnectionName();
     }
 }

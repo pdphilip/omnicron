@@ -2,16 +2,24 @@
 
 namespace PDPhilip\OmniCron\Store;
 
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use PDPhilip\OmniCron\OmniTask;
 use PDPhilip\OmniCron\Run\Run;
 use PDPhilip\OmniCron\Run\RunState;
 
+/**
+ * Runs in Eloquent. Which Eloquent is the app's choice: the bundled Run
+ * model (SQL, migration included) by default, or any model carrying
+ * RunsLifecycle via config 'omnicron.model' - which is how a MongoDB app
+ * keeps its run log in Mongo.
+ */
 class DatabaseStore implements RunStore
 {
-    public function open(OmniTask $task, bool $manual = false): Run
+    public function open(OmniTask $task, bool $manual = false): Model
     {
-        $run = new Run;
+        $run = $this->model();
         $run->task = $task->key();
         $run->state = RunState::RUNNING;
         $run->started_at = time();
@@ -27,14 +35,14 @@ class DatabaseStore implements RunStore
         return $this->latestFor($task)?->started_at;
     }
 
-    public function latestFor(OmniTask $task): ?Run
+    public function latestFor(OmniTask $task): ?Model
     {
-        return Run::query()->where('task', $task->key())->orderByDesc('started_at')->first();
+        return $this->query()->where('task', $task->key())->orderByDesc('started_at')->first();
     }
 
-    public function lastSuccessFor(OmniTask $task): ?Run
+    public function lastSuccessFor(OmniTask $task): ?Model
     {
-        return Run::query()
+        return $this->query()
             ->where('task', $task->key())
             ->where('state', RunState::OK->value)
             ->orderByDesc('started_at')
@@ -43,7 +51,7 @@ class DatabaseStore implements RunStore
 
     public function history(?OmniTask $task = null, int $limit = 50): Collection
     {
-        return Run::query()
+        return $this->query()
             ->when($task, fn ($query) => $query->where('task', $task->key()))
             ->orderByDesc('started_at')
             ->limit($limit)
@@ -54,9 +62,21 @@ class DatabaseStore implements RunStore
     {
         // RUNNING rows are kept whatever their age - an orphaned one is the
         // only evidence of a crash, and pruning it erases the incident.
-        return Run::query()
+        return $this->query()
             ->where('started_at', '<', $beforeTs)
             ->where('state', '!=', RunState::RUNNING->value)
             ->delete();
+    }
+
+    private function model(): Model
+    {
+        $class = config('omnicron.model', Run::class);
+
+        return new $class;
+    }
+
+    private function query(): Builder
+    {
+        return $this->model()->newQuery();
     }
 }

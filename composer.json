@@ -1,7 +1,13 @@
 {
     "name": "pdphilip/omnicron",
     "description": "Unify your Laravel cron jobs into loggable, self-describing tasks with a queryable run history",
-    "keywords": ["laravel", "cron", "scheduler", "tasks", "monitoring"],
+    "keywords": [
+        "laravel",
+        "cron",
+        "scheduler",
+        "tasks",
+        "monitoring"
+    ],
     "homepage": "https://github.com/pdphilip/omnicron",
     "license": "MIT",
     "authors": [
@@ -58,5 +64,9 @@
         }
     },
     "minimum-stability": "dev",
-    "prefer-stable": true
+    "prefer-stable": true,
+    "suggest": {
+        "mongodb/laravel-mongodb": "Keep the run log in MongoDB via the bundled MongoRun model (^5.0)",
+        "pdphilip/elasticsearch": "Keep the run log in Elasticsearch via the bundled EsRun model (^5.0)"
+    }
 }

@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Cache;
 use PDPhilip\OmniCron\OmniCron;
 use PDPhilip\OmniCron\Run\Run;
 use PDPhilip\OmniCron\Run\RunState;
+use PDPhilip\OmniCron\Tests\Fixtures\CustomRun;
 use PDPhilip\OmniCron\Tests\Fixtures\FailingTask;
 use PDPhilip\OmniCron\Tests\Fixtures\HourlyTask;
 use PDPhilip\OmniCron\Tests\Fixtures\ProductionOnlyTask;
@@ -157,4 +158,18 @@ it('prunes old finished runs but never a RUNNING row - that is crash evidence', 
 
     expect($removed)->toBe(1)
         ->and(Run::query()->sole()->state)->toBe(RunState::RUNNING);
+});
+
+// ======================================================================
+// The swappable model
+// ======================================================================
+
+it('logs through a swapped run model - how a MongoDB app keeps its log in Mongo', function () {
+    config()->set('omnicron.model', CustomRun::class);
+
+    $result = engine()->run(new HourlyTask);
+
+    expect($result['state'])->toBe('ok')
+        ->and(engine()->store()->latestFor(new HourlyTask))
+        ->toBeInstanceOf(CustomRun::class);
 });

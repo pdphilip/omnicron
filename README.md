@@ -303,6 +303,32 @@ return [
 
 ---
 
+## The Run Log Lives Anywhere Eloquent Does
+
+The log is just a model, and the model is swappable:
+
+```php
+// config/omnicron.php
+'model' => PDPhilip\OmniCron\Run\Run::class,        // SQL - the default, migration included
+'model' => PDPhilip\OmniCron\Run\MongoRun::class,   // MongoDB (mongodb/laravel-mongodb)
+'model' => PDPhilip\OmniCron\Run\EsRun::class,      // Elasticsearch (pdphilip/elasticsearch)
+```
+
+Mongo needs no migration - collections are schemaless; declare indexes on `(task, started_at)`. Elasticsearch needs its index **mapped before the first run lands** (ES types fields on first write): `Schema::create('omnicron_runs', [EsRun::class, 'mappingDefinition'])`.
+
+Or bring your own - any Eloquent flavour becomes the run log by wearing one trait:
+
+```php
+class OmniCronRun extends WhateverEloquentModel
+{
+    use \PDPhilip\OmniCron\Run\RunsLifecycle;
+}
+```
+
+There is also `'connection' => 'mysql'` for the simpler case of pointing the bundled SQL model at a secondary connection.
+
+---
+
 ## Roadmap
 
 - **Queued tasks** — `queued()` exists on the base class and is reserved; v0 runs every task inline.
