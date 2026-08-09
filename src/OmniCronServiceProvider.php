@@ -8,6 +8,7 @@ use PDPhilip\OmniCron\Commands\PruneCommand;
 use PDPhilip\OmniCron\Commands\RunCommand;
 use PDPhilip\OmniCron\Commands\TickCommand;
 use PDPhilip\OmniCron\Store\DatabaseStore;
+use PDPhilip\OmniCron\Store\RedisStore;
 use PDPhilip\OmniCron\Store\RunStore;
 use Spatie\LaravelPackageTools\Commands\InstallCommand;
 use Spatie\LaravelPackageTools\Package;
@@ -40,7 +41,10 @@ class OmniCronServiceProvider extends PackageServiceProvider
 
     public function packageRegistered(): void
     {
-        $this->app->singleton(RunStore::class, DatabaseStore::class);
+        $this->app->singleton(RunStore::class, fn () => match (config('omnicron.store', 'database')) {
+            'redis' => new RedisStore,
+            default => new DatabaseStore,
+        });
         $this->app->singleton(OmniCron::class);
     }
 

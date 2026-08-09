@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use PDPhilip\OmniCron\OmniTask;
 use PDPhilip\OmniCron\Run\Run;
+use PDPhilip\OmniCron\Run\RunRow;
 use PDPhilip\OmniCron\Run\RunState;
 
 /**
@@ -17,7 +18,7 @@ use PDPhilip\OmniCron\Run\RunState;
  */
 class DatabaseStore implements RunStore
 {
-    public function open(OmniTask $task, bool $manual = false): Model
+    public function open(OmniTask $task, bool $manual = false): RunRow
     {
         $run = $this->model();
         $run->task = $task->key();
@@ -35,12 +36,12 @@ class DatabaseStore implements RunStore
         return $this->latestFor($task)?->started_at;
     }
 
-    public function latestFor(OmniTask $task): ?Model
+    public function latestFor(OmniTask $task): ?RunRow
     {
         return $this->query()->where('task', $task->key())->orderByDesc('started_at')->first();
     }
 
-    public function lastSuccessFor(OmniTask $task): ?Model
+    public function lastSuccessFor(OmniTask $task): ?RunRow
     {
         return $this->query()
             ->where('task', $task->key())

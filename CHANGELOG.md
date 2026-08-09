@@ -2,6 +2,19 @@
 
 All notable changes to `pdphilip/omnicron` are documented here.
 
+## v0.1.0-beta.4 - 2026-08-09
+
+### Added
+
+- **Redis store** - `'store' => 'redis'` (or `OMNICRON_STORE=redis`): the
+  Horizon way. Zero migrations, one capped list per task, the RUNNING row
+  still written before the work starts. The cap is the retention policy -
+  the durable database store remains the default for history that must
+  survive.
+- `RunRow` contract - the surface the engine touches. Eloquent flavours
+  satisfy it through `RunsLifecycle`; the Redis store's rows implement it
+  directly.
+
 ## v0.1.0-beta.3 - 2026-08-09
 
 ### Added

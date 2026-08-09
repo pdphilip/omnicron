@@ -25,7 +25,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property string|null $host
  * @property bool $manual
  */
-class Run extends Model
+class Run extends Model implements RunRow
 {
     use RunsLifecycle;
 

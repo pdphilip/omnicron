@@ -53,20 +53,31 @@ return [
     |--------------------------------------------------------------------------
     | Run history
     |--------------------------------------------------------------------------
-    | Where runs are logged (the migration creates this table) and how long
-    | finished runs are kept. Schedule `omnicron:prune` to enforce the window.
+    | Where runs are logged. 'database' (default) is durable and queryable -
+    | the point of keeping a log. 'redis' is the Horizon way: zero
+    | migrations, history capped per task rather than kept - great for
+    | trying the package; know that shared Redis under memory pressure
+    | evicts a run log first.
     |
-    | 'connection' points the bundled Run model at a non-default database
-    | connection. 'model' swaps the model entirely: Run (SQL, default),
-    | MongoRun (requires mongodb/laravel-mongodb), EsRun (requires
-    | pdphilip/elasticsearch - map the index first, see its docblock), or
-    | any model of your own wearing RunsLifecycle.
+    | For 'database': 'connection' points the bundled Run model at a
+    | non-default connection, and 'model' swaps the model entirely - Run
+    | (SQL, default), MongoRun (requires mongodb/laravel-mongodb), EsRun
+    | (requires pdphilip/elasticsearch - map the index first, see its
+    | docblock), or any model of your own wearing RunsLifecycle.
+    |
+    | `omnicron:prune` enforces the retention window on durable stores.
     */
+    'store' => env('OMNICRON_STORE', 'database'),
     'table' => 'omnicron_runs',
     'connection' => null,
     'model' => Run::class,
     'history' => [
         'keep_days' => 90,
+    ],
+    'redis' => [
+        'connection' => null,
+        'key_prefix' => 'omnicron:runs:',
+        'max_runs' => 200,
     ],
 
     /*

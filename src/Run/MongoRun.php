@@ -14,7 +14,7 @@ use MongoDB\Laravel\Eloquent\Model;
  * (task, started_at) and (task, state, started_at) however your app manages
  * Mongo indexes - the store sorts and filters on exactly those.
  */
-class MongoRun extends Model
+class MongoRun extends Model implements RunRow
 {
     use RunsLifecycle;
 }

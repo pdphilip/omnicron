@@ -16,7 +16,7 @@ use PDPhilip\Elasticsearch\Schema\Blueprint;
  *
  *   Schema::create('omnicron_runs', [EsRun::class, 'mappingDefinition']);
  */
-class EsRun extends Model
+class EsRun extends Model implements RunRow
 {
     use RunsLifecycle;
 

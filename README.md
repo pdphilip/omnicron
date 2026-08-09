@@ -303,12 +303,19 @@ return [
 
 ---
 
-## The Run Log Lives Anywhere Eloquent Does
+## The Run Log Lives Anywhere
 
-The log is just a model, and the model is swappable:
+Two stores, one interface:
 
 ```php
-// config/omnicron.php
+// config/omnicron.php  (or OMNICRON_STORE=redis)
+'store' => 'database',   // durable, queryable - the default
+'store' => 'redis',      // the Horizon way: zero migrations, history capped per task
+```
+
+Redis is the zero-friction start - nothing to migrate, nothing to install. Know the trade: shared Redis under memory pressure evicts a run log first, and the cap (`omnicron.redis.max_runs`) IS the retention policy. When "what did it return three weeks ago" starts mattering, graduate to the database store - which is just a model, and the model is swappable:
+
+```php
 'model' => PDPhilip\OmniCron\Run\Run::class,        // SQL - the default, migration included
 'model' => PDPhilip\OmniCron\Run\MongoRun::class,   // MongoDB (mongodb/laravel-mongodb)
 'model' => PDPhilip\OmniCron\Run\EsRun::class,      // Elasticsearch (pdphilip/elasticsearch)
@@ -348,7 +355,7 @@ Path and middleware live in `config('omnicron.dashboard')`.
 
 - **Queued tasks** — `queued()` exists on the base class and is reserved; v0 runs every task inline.
 - **Notifications** — `notify()` from inside a task, plus automatic alerts after repeated failures.
-- **Alternate stores** — the run log sits behind a `RunStore` interface; Redis and remote drivers can slot in without touching the runner.
+- **Remote store** — POST run results to a collector service; the `RunStore` interface is ready for it.
 
 ## Not a Scheduler Replacement
 
