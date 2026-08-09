@@ -1,0 +1,35 @@
+<?php
+
+namespace {{ namespace }};
+
+use PDPhilip\OmniCron\OmniTask;
+use PDPhilip\OmniCron\Schedule\Schedule;
+
+class {{ class }} extends OmniTask
+{
+    public function schedule(Schedule $schedule): void
+    {
+        // A bare schedule is midnight daily. Narrow or widen from there:
+        //   $schedule->everyMinute(15);          every 15 minutes
+        //   $schedule->everyHour();              on the hour
+        //   $schedule->everyMonday()->at('06:00');
+        $schedule->everyHour();
+    }
+
+    /**
+     * What you return is the log. Say what happened, not that it happened -
+     * ['deleted' => 0] is a useful fact three weeks later.
+     */
+    public function execute(): array
+    {
+        return [
+            //
+        ];
+    }
+
+    // Anything that emails people or spends money declares where it may run:
+    // public function environments(): ?array
+    // {
+    //     return ['production'];
+    // }
+}

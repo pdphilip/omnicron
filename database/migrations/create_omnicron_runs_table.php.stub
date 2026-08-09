@@ -1,0 +1,34 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create(config('omnicron.table', 'omnicron_runs'), function (Blueprint $table) {
+            $table->id();
+            $table->string('task');
+            $table->string('state', 16);
+            $table->unsignedBigInteger('started_at');
+            $table->unsignedBigInteger('finished_at')->nullable();
+            $table->unsignedInteger('duration_ms')->nullable();
+            $table->json('output')->nullable();
+            $table->text('error')->nullable();
+            $table->string('host')->nullable();
+            $table->boolean('manual')->default(false);
+            $table->timestamps();
+
+            $table->index(['task', 'started_at']);
+            $table->index(['task', 'state', 'started_at']);
+            $table->index('started_at');
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists(config('omnicron.table', 'omnicron_runs'));
+    }
+};
