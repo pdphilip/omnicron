@@ -12,6 +12,10 @@ use Illuminate\Support\Facades\Facade;
  * @method static array run(\PDPhilip\OmniCron\OmniTask $task, bool $manual = false)
  * @method static array tick()
  * @method static array status()
+ * @method static string expressionFor(\PDPhilip\OmniCron\OmniTask $task)
+ * @method static void pause(\PDPhilip\OmniCron\OmniTask $task)
+ * @method static void resume(\PDPhilip\OmniCron\OmniTask $task)
+ * @method static void overrideSchedule(\PDPhilip\OmniCron\OmniTask $task, ?string $expression)
  * @method static \PDPhilip\OmniCron\Store\RunStore store()
  *
  * @see \PDPhilip\OmniCron\OmniCron

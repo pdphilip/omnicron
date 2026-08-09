@@ -2,6 +2,34 @@
 
 All notable changes to `pdphilip/omnicron` are documented here.
 
+## v0.1.0-beta.5 - 2026-08-09
+
+Two models: the registry and the log.
+
+### Added
+
+- **`CronJob` registry model** - one control row per registered task,
+  created lazily. Holds the two things an operator may change without a
+  deploy: `paused` and `schedule_override`. `CronJob::with('latestRun')`
+  is the model view of "what crons exist and how are they doing";
+  `$job->runs` is its full log - a plain relationship to whichever run
+  model is configured. `MongoCronJob` bundled for Mongo apps
+  (`omnicron.job_model`); on the Redis store, operator state lives in a
+  Redis hash - same controls, no models.
+- `OmniCron::pause()` / `resume()` - a paused task is skipped by the
+  tick but still runs manually (explicit intent, the same rule as
+  `environments()`).
+- `OmniCron::overrideSchedule()` - an operator cron expression that wins
+  over the code until cleared. Invalid input throws; an invalid stored
+  value is ignored rather than obeyed.
+- Dashboard: pause/resume per card, click-to-edit schedule override on
+  the cron pill (amber when overridden, clear to restore), paused cards
+  dimmed with a Paused badge.
+- `status()` rows now carry `paused`, `schedule_overridden`, and
+  `schedule_in_code` alongside the ruling `schedule`.
+- New migration `create_omnicron_jobs_table` (published by
+  `omnicron:install`).
+
 ## v0.1.0-beta.4 - 2026-08-09
 
 ### Added

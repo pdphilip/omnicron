@@ -64,7 +64,17 @@
         font-family: var(--mono); font-size: 12px; color: var(--info);
         background: rgba(79,142,247,.07); border: 1px solid rgba(79,142,247,.15);
         padding: 2px 8px; border-radius: 6px; display: inline-block; width: fit-content;
+        cursor: pointer;
     }
+    .cron:hover { border-color: rgba(79,142,247,.4); }
+    .cron.overridden { color: var(--warn); background: rgba(245,166,35,.07); border-color: rgba(245,166,35,.3); }
+    input.cron-edit {
+        font-family: var(--mono); font-size: 12px; color: var(--ink);
+        background: var(--bg); border: 1px solid var(--info); border-radius: 6px;
+        padding: 2px 8px; width: 150px; outline: none;
+    }
+    .card.paused { opacity: .65; }
+    button.ghost.sm { padding: 3px 10px; font-size: 11px; }
     .card .facts { display: flex; gap: 14px; color: var(--muted); font-size: 12px; flex-wrap: wrap; }
     .card .facts b { color: var(--ink); font-weight: 550; }
     .card .foot { display: flex; align-items: center; margin-top: 2px; }
@@ -164,7 +174,7 @@
     // -----------------------------------------------
 
     const card = (t) => `
-        <div class="card">
+        <div class="card${t.paused ? ' paused' : ''}">
             <div class="top">
                 <div>
                     <h3>${esc(t.label)}</h3>
@@ -172,14 +182,16 @@
                 </div>
                 <span class="badge h-${t.health}"><span class="dot"></span>${esc(t.health_label)}</span>
             </div>
-            <span class="cron">${esc(t.schedule)}</span>
+            <span class="cron${t.schedule_overridden ? ' overridden' : ''}" data-task="${esc(t.task)}"
+                  title="${t.schedule_overridden ? 'Overridden - code says ' + esc(t.schedule_in_code) + '. Click to edit, clear to restore.' : 'Click to override the schedule'}">${esc(t.schedule)}</span>
             <div class="facts">
                 <span>last <b>${esc(t.last_success_ago ?? 'never')}</b>${t.duration_label ? ` &middot; ${esc(t.duration_label)}` : ''}</span>
-                <span>next <b>${esc(t.next_run_in.replace('in ', ''))}</b></span>
+                <span>next <b>${t.paused ? 'paused' : esc(t.next_run_in.replace('in ', ''))}</b></span>
             </div>
             <div class="foot">
                 <span class="tz">${esc(t.timezone)}</span>
-                <button class="run" data-task="${esc(t.task)}">Run now</button>
+                <button class="ghost sm pausejob" data-task="${esc(t.task)}" data-paused="${t.paused ? 1 : 0}" style="margin-left:auto">${t.paused ? 'Resume' : 'Pause'}</button>
+                <button class="run" data-task="${esc(t.task)}" style="margin-left:8px">Run now</button>
             </div>
         </div>`;
 
@@ -199,6 +211,8 @@
         }
 
         document.querySelectorAll('button.run').forEach(btn => btn.addEventListener('click', () => trigger(btn)));
+        document.querySelectorAll('button.pausejob').forEach(btn => btn.addEventListener('click', () => togglePause(btn)));
+        document.querySelectorAll('.cron[data-task]').forEach(pill => pill.addEventListener('click', () => editSchedule(pill)));
     }
 
     // -----------------------------------------------
@@ -256,6 +270,50 @@
             else toast(btn.dataset.task + ' ran in ' + result.duration_ms + 'ms');
         } catch { toast('Request failed', true); }
         refresh();
+    }
+
+    async function postJob(task, body) {
+        const response = await fetch(base + '/api/job/' + task, {
+            method: 'POST',
+            headers: {'X-CSRF-TOKEN': csrf, Accept: 'application/json', 'Content-Type': 'application/json'},
+            body: JSON.stringify(body),
+        });
+        const result = await response.json();
+        if (!response.ok) { toast(result.error ?? 'Request failed', true); return false; }
+        return true;
+    }
+
+    async function togglePause(btn) {
+        const paused = btn.dataset.paused === '1';
+        if (await postJob(btn.dataset.task, {paused: !paused})) {
+            toast(btn.dataset.task + (paused ? ' resumed' : ' paused'));
+        }
+        refresh();
+    }
+
+    // The cron pill IS the override editor: Enter saves, empty restores the
+    // code's schedule, Escape walks away.
+    function editSchedule(pill) {
+        const task = pill.dataset.task;
+        const input = document.createElement('input');
+        input.className = 'cron-edit';
+        input.value = pill.textContent.trim();
+        pill.replaceWith(input);
+        input.focus();
+        input.select();
+
+        let finished = false;
+        const done = () => { if (!finished) { finished = true; refresh(); } };
+
+        input.addEventListener('keydown', async (e) => {
+            if (e.key === 'Escape') return done();
+            if (e.key !== 'Enter') return;
+            if (await postJob(task, {schedule_override: input.value.trim()})) {
+                toast(input.value.trim() ? task + ' schedule overridden' : task + ' schedule restored to code');
+            }
+            done();
+        });
+        input.addEventListener('blur', done);
     }
 
     let toastTimer;

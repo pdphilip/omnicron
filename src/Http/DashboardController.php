@@ -88,14 +88,43 @@ class DashboardController
         return response()->json($this->omnicron->run($found, manual: true));
     }
 
+    /**
+     * Operator controls: pause/resume, or override the schedule without a
+     * deploy (empty override restores the code's).
+     */
+    public function updateJob(Request $request, string $task): JsonResponse
+    {
+        $found = $this->omnicron->find($task);
+
+        if (! $found) {
+            return response()->json(['error' => 'Unknown task: '.$task], 404);
+        }
+
+        if ($request->has('paused')) {
+            $request->boolean('paused') ? $this->omnicron->pause($found) : $this->omnicron->resume($found);
+        }
+
+        if ($request->has('schedule_override')) {
+            $expression = trim((string) $request->input('schedule_override')) ?: null;
+            try {
+                $this->omnicron->overrideSchedule($found, $expression);
+            } catch (\InvalidArgumentException $e) {
+                return response()->json(['error' => $e->getMessage()], 422);
+            }
+        }
+
+        return response()->json(['ok' => true]);
+    }
+
     // ======================================================================
     // Row rendering
     // ======================================================================
 
-    /** Worst thing wins. */
+    /** Worst thing wins - except paused, which is a chosen state, not a bad one. */
     private function health(array $row): string
     {
         return match (true) {
+            $row['paused'] => 'idle',
             $row['is_stuck'] => 'danger',
             $row['last_state'] === 'failed' => 'danger',
             $row['last_state'] === null => 'idle',
@@ -107,6 +136,7 @@ class DashboardController
     private function healthLabel(array $row): string
     {
         return match (true) {
+            $row['paused'] => 'Paused',
             $row['is_stuck'] => 'Stuck mid-run',
             $row['last_state'] === 'failed' => 'Last run failed',
             $row['last_state'] === null => 'Never run',

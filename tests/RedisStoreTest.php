@@ -76,6 +76,20 @@ it('caps history per task - the cap is the retention contract', function () {
     expect(redisEngine()->store()->history(new HourlyTask, 50))->toHaveCount(3);
 });
 
+it('keeps operator state - pause and override - in a redis hash', function () {
+    redisEngine()->pause(new HourlyTask);
+
+    expect(redisEngine()->due())->toBe([])
+        ->and(redisEngine()->store()->job(new HourlyTask)->isPaused())->toBeTrue();
+
+    redisEngine()->resume(new HourlyTask);
+    redisEngine()->overrideSchedule(new HourlyTask, '*/5 * * * *');
+
+    expect(redisEngine()->due())->toHaveCount(1)
+        ->and(redisEngine()->store()->job(new HourlyTask)->scheduleOverride())->toBe('*/5 * * * *')
+        ->and(redisEngine()->expressionFor(new HourlyTask))->toBe('*/5 * * * *');
+});
+
 it('prunes finished runs but keeps RUNNING rows', function () {
     $store = redisEngine()->store();
 

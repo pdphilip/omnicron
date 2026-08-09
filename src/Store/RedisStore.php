@@ -5,6 +5,8 @@ namespace PDPhilip\OmniCron\Store;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Str;
+use PDPhilip\OmniCron\Job\JobRow;
+use PDPhilip\OmniCron\Job\RedisJob;
 use PDPhilip\OmniCron\OmniTask;
 use PDPhilip\OmniCron\Run\RedisRun;
 use PDPhilip\OmniCron\Run\RunRow;
@@ -27,6 +29,28 @@ use PDPhilip\OmniCron\Run\RunState;
  */
 class RedisStore implements RunStore
 {
+    public function job(OmniTask $task): JobRow
+    {
+        $data = $this->redis()->hgetall($this->jobKey($task->key())) ?: [];
+
+        return new RedisJob(
+            key: $task->key(),
+            paused: ($data['paused'] ?? '0') === '1',
+            scheduleOverride: ($data['schedule_override'] ?? '') ?: null,
+            store: $this,
+        );
+    }
+
+    public function saveJob(RedisJob $job): void
+    {
+        $this->redis()->hmset($this->jobKey($job->jobKey()), $job->toArray());
+    }
+
+    private function jobKey(string $taskKey): string
+    {
+        return config('omnicron.redis.job_prefix', 'omnicron:jobs:').$taskKey;
+    }
+
     public function open(OmniTask $task, bool $manual = false): RunRow
     {
         $run = new RedisRun(

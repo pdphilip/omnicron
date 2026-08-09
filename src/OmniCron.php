@@ -74,12 +74,28 @@ class OmniCron
             return true;
         }
 
-        $expression = new CronExpression($task->expression());
+        $expression = new CronExpression($this->expressionFor($task));
         $nextAfterLast = $expression
             ->getNextRunDate('@'.$last, 0, false, $task->timezone())
             ->getTimestamp();
 
         return $nextAfterLast <= $now;
+    }
+
+    /**
+     * The schedule that actually rules: an operator's stored override wins
+     * over the code (an invalid override is ignored rather than obeyed);
+     * otherwise the task class speaks.
+     */
+    public function expressionFor(OmniTask $task): string
+    {
+        $override = $this->store->job($task)->scheduleOverride();
+
+        if ($override && CronExpression::isValidExpression($override)) {
+            return $override;
+        }
+
+        return $task->expression();
     }
 
     /** @return array<int, OmniTask> */
@@ -88,6 +104,10 @@ class OmniCron
         $due = [];
         foreach ($this->tasks() as $task) {
             if (! $this->allowedHere($task)) {
+                continue;
+            }
+            // Paused gates the tick only - a manual run is explicit intent.
+            if ($this->store->job($task)->isPaused()) {
                 continue;
             }
             if ($this->isDue($task, $now)) {
@@ -201,6 +221,7 @@ class OmniCron
         $stuck = 0;
 
         foreach ($this->tasks() as $task) {
+            $job = $this->store->job($task);
             $latest = $this->store->latestFor($task);
             $lastOk = $this->store->lastSuccessFor($task);
             $sinceOk = $lastOk ? $now - $lastOk->started_at : null;
@@ -217,7 +238,10 @@ class OmniCron
                 'task' => $task->key(),
                 'label' => $task->label(),
                 'description' => $task->description(),
-                'schedule' => $task->expression(),
+                'schedule' => $this->expressionFor($task),
+                'schedule_overridden' => $job->scheduleOverride() !== null,
+                'schedule_in_code' => $task->expression(),
+                'paused' => $job->isPaused(),
                 'timezone' => $task->timezone(),
                 'last_state' => $latest?->state->value,
                 'last_success_at' => $lastOk?->started_at,
@@ -249,7 +273,7 @@ class OmniCron
     /** Seconds between two consecutive scheduled runs. */
     public function scheduledInterval(OmniTask $task): int
     {
-        $expression = new CronExpression($task->expression());
+        $expression = new CronExpression($this->expressionFor($task));
         $first = $expression->getNextRunDate('now', 0, false, $task->timezone());
         $second = $expression->getNextRunDate($first, 0, false, $task->timezone());
 
@@ -259,11 +283,38 @@ class OmniCron
     /** When the schedule next comes round, as a unix timestamp. */
     public function nextRunAt(OmniTask $task, ?int $now = null): int
     {
-        $expression = new CronExpression($task->expression());
+        $expression = new CronExpression($this->expressionFor($task));
 
         return $expression
             ->getNextRunDate('@'.($now ?? time()), 0, false, $task->timezone())
             ->getTimestamp();
+    }
+
+    // ======================================================================
+    // Operator controls
+    // ======================================================================
+
+    public function pause(OmniTask $task): void
+    {
+        $this->store->job($task)->pause();
+    }
+
+    public function resume(OmniTask $task): void
+    {
+        $this->store->job($task)->resume();
+    }
+
+    /**
+     * Store an operator schedule, or null to restore the code's. Invalid
+     * expressions throw here rather than silently breaking due-ness.
+     */
+    public function overrideSchedule(OmniTask $task, ?string $expression): void
+    {
+        if ($expression !== null && ! CronExpression::isValidExpression($expression)) {
+            throw new \InvalidArgumentException('Not a valid cron expression: '.$expression);
+        }
+
+        $this->store->job($task)->overrideSchedule($expression);
     }
 
     public function store(): RunStore

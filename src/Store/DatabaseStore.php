@@ -5,6 +5,8 @@ namespace PDPhilip\OmniCron\Store;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
+use PDPhilip\OmniCron\Job\CronJob;
+use PDPhilip\OmniCron\Job\JobRow;
 use PDPhilip\OmniCron\OmniTask;
 use PDPhilip\OmniCron\Run\Run;
 use PDPhilip\OmniCron\Run\RunRow;
@@ -18,6 +20,16 @@ use PDPhilip\OmniCron\Run\RunState;
  */
 class DatabaseStore implements RunStore
 {
+    public function job(OmniTask $task): JobRow
+    {
+        $class = config('omnicron.job_model', CronJob::class);
+
+        return $class::query()->firstOrCreate(
+            ['key' => $task->key()],
+            ['class' => get_class($task), 'paused' => false],
+        );
+    }
+
     public function open(OmniTask $task, bool $manual = false): RunRow
     {
         $run = $this->model();

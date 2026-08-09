@@ -22,7 +22,8 @@ class TestCase extends Orchestra
     {
         parent::setUp();
 
-        $migration = include __DIR__.'/../database/migrations/create_omnicron_runs_table.php.stub';
-        $migration->up();
+        foreach (['create_omnicron_runs_table', 'create_omnicron_jobs_table'] as $migration) {
+            (include __DIR__.'/../database/migrations/'.$migration.'.php.stub')->up();
+        }
     }
 }

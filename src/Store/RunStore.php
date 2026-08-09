@@ -3,6 +3,7 @@
 namespace PDPhilip\OmniCron\Store;
 
 use Illuminate\Support\Collection;
+use PDPhilip\OmniCron\Job\JobRow;
 use PDPhilip\OmniCron\OmniTask;
 use PDPhilip\OmniCron\Run\RunRow;
 
@@ -18,6 +19,13 @@ use PDPhilip\OmniCron\Run\RunRow;
  */
 interface RunStore
 {
+    /**
+     * The control row for a task, find-or-created on first touch. Operator
+     * state (paused, schedule override) lives here - the code keeps
+     * everything else.
+     */
+    public function job(OmniTask $task): JobRow;
+
     /** Claim the run BEFORE the work starts - a crash must leave a trace. */
     public function open(OmniTask $task, bool $manual = false): RunRow;
 

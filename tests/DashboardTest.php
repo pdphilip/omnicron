@@ -82,3 +82,22 @@ it('triggers a manual run from the dashboard and 404s unknown tasks', function (
 
     $this->postJson('/omnicron/dashboard/api/run/nope')->assertStatus(404);
 });
+
+it('pauses and overrides from the dashboard, rejecting junk cron', function () {
+    Gate::define('viewOmniCron', fn ($user = null) => true);
+
+    $this->postJson('/omnicron/dashboard/api/job/hourly-task', ['paused' => true])->assertOk();
+    $this->getJson('/omnicron/dashboard/api/overview')
+        ->assertJsonPath('tasks.0.paused', true)
+        ->assertJsonPath('tasks.0.health_label', 'Paused');
+
+    $this->postJson('/omnicron/dashboard/api/job/hourly-task', ['schedule_override' => '*/10 * * * *'])->assertOk();
+    $this->getJson('/omnicron/dashboard/api/overview')
+        ->assertJsonPath('tasks.0.schedule', '*/10 * * * *')
+        ->assertJsonPath('tasks.0.schedule_overridden', true)
+        ->assertJsonPath('tasks.0.schedule_in_code', '0 * * * *');
+
+    $this->postJson('/omnicron/dashboard/api/job/hourly-task', ['schedule_override' => 'not-cron'])
+        ->assertStatus(422);
+    $this->postJson('/omnicron/dashboard/api/job/nope', ['paused' => true])->assertStatus(404);
+});

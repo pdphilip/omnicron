@@ -14,4 +14,5 @@ Route::prefix(config('omnicron.dashboard.path', 'omnicron'))
         Route::get('/api/overview', [DashboardController::class, 'overview'])->name('omnicron.dashboard.overview');
         Route::get('/api/runs', [DashboardController::class, 'runs'])->name('omnicron.dashboard.runs');
         Route::post('/api/run/{task}', [DashboardController::class, 'run'])->name('omnicron.dashboard.run');
+        Route::post('/api/job/{task}', [DashboardController::class, 'updateJob'])->name('omnicron.dashboard.job');
     });

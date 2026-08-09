@@ -23,6 +23,7 @@ class OmniCronServiceProvider extends PackageServiceProvider
             ->hasConfigFile()
             ->hasViews()
             ->hasMigration('create_omnicron_runs_table')
+            ->hasMigration('create_omnicron_jobs_table')
             ->hasCommands([
                 MakeTaskCommand::class,
                 TickCommand::class,

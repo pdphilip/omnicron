@@ -336,9 +336,32 @@ There is also `'connection' => 'mysql'` for the simpler case of pointing the bun
 
 ---
 
+## Two Models: the Registry and the Log
+
+Your code defines the tasks; two models mirror them:
+
+- **`CronJob`** — one row per registered task, created lazily. This is the operator's handle: it holds `paused` and `schedule_override`, the two things an operator may change without a deploy. Everything else stays in code.
+- **The run model** (`Run` / `MongoRun` / `EsRun` / yours) — the log. Reached from the registry as a plain relationship.
+
+```php
+use PDPhilip\OmniCron\Job\CronJob;
+
+CronJob::with('latestRun')->get();     // every cron and how it's doing
+CronJob::query()->sole()->runs;        // a job's full history, newest first
+
+OmniCron::pause($task);                     // skipped by the tick; manual runs still fire
+OmniCron::resume($task);
+OmniCron::overrideSchedule($task, '*/5 * * * *');  // wins over the code until cleared
+OmniCron::overrideSchedule($task, null);           // back to what the code says
+```
+
+Pausing gates the **tick only** — a manual run is explicit intent, the same rule as `environments()`. An override must be a valid cron expression (invalid input throws; an invalid stored value is ignored rather than obeyed). `MongoCronJob` is bundled for Mongo apps — set `'job_model' => MongoCronJob::class` and pair it with `MongoRun` so the relationship stays same-connection. On the Redis store, operator state lives in a Redis hash — no models, same controls.
+
+---
+
 ## Dashboard
 
-`/omnicron/dashboard` — task health cards, the full run log with each run's returned JSON, and manual triggers. Served entirely by the package: no build step, no Inertia/Livewire coupling, works identically whatever your app's frontend is.
+`/omnicron/dashboard` — task health cards, the full run log with each run's returned JSON, manual triggers, pause/resume, and click-to-edit schedule overrides (the cron pill turns amber when overridden; clear it to restore the code's schedule). Served entirely by the package: no build step, no Inertia/Livewire coupling, works identically whatever your app's frontend is.
 
 Open in `local`. Everywhere else it follows the Horizon convention — define the gate or the dashboard stays 403:
 

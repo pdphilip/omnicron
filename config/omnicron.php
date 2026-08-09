@@ -1,5 +1,6 @@
 <?php
 
+use PDPhilip\OmniCron\Job\CronJob;
 use PDPhilip\OmniCron\Run\Run;
 
 return [
@@ -71,6 +72,19 @@ return [
     'table' => 'omnicron_runs',
     'connection' => null,
     'model' => Run::class,
+
+    /*
+    |--------------------------------------------------------------------------
+    | The job registry
+    |--------------------------------------------------------------------------
+    | One control row per registered task - where an operator pauses a job
+    | or overrides its schedule without a deploy. CronJob::with('latestRun')
+    | is the model view of "what crons exist and how are they doing";
+    | $job->runs() is its log. MongoCronJob is bundled for Mongo apps
+    | (pair it with MongoRun so the relationship stays same-connection).
+    */
+    'jobs_table' => 'omnicron_jobs',
+    'job_model' => CronJob::class,
     'history' => [
         'keep_days' => 90,
     ],
