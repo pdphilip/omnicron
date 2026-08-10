@@ -145,6 +145,17 @@ class OmniCron
             return ['task' => $task->key(), 'ran' => false, 'state' => 'locked'];
         }
 
+        // Won the lock - but a parallel tick may have fully run a fast task
+        // between our due check and now, releasing its lock already. Recheck
+        // against the store (last start moved) so simultaneous ticks from
+        // parallel machines cannot double-fire. Manual runs skip this - they
+        // ignore the schedule by design.
+        if (! $manual && ! $this->isDue($task)) {
+            $lock->release();
+
+            return ['task' => $task->key(), 'ran' => false, 'state' => 'already_ran'];
+        }
+
         // Claimed before the work starts - an unfinished run must leave a row.
         $run = $this->store->open($task, $manual);
         $started = microtime(true);

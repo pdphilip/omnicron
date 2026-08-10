@@ -2,6 +2,20 @@
 
 All notable changes to `pdphilip/omnicron` are documented here.
 
+## v0.1.0-beta.6 - 2026-08-10
+
+### Fixed
+
+- **Parallel-fleet double-fire** - a tick-driven run now rechecks due-ness
+  after winning the task lock. Before: two machines ticking the same
+  second both saw a task due; the lock loser, arriving after a fast task
+  had already finished and released its lock, ran it a second time. Now
+  the recheck reads the moved last-start from the shared store and the
+  loser returns `{ran: false, state: 'already_ran'}`, writing no row.
+  Manual runs are untouched - they ignore the schedule by design.
+  (Reminder: fleet safety requires every machine to share one
+  atomic-lock cache store - redis, memcached, database, dynamodb.)
+
 ## v0.1.0-beta.5 - 2026-08-09
 
 Two models: the registry and the log.

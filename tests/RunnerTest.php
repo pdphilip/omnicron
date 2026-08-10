@@ -75,6 +75,21 @@ it('records a failure with its error instead of losing it', function () {
         ->and($run->error)->toBe('the disk is on fire');
 });
 
+it('rechecks due-ness after winning the lock so parallel ticks cannot double-run a fast task', function () {
+    $task = new HourlyTask;
+    // Another machine's tick ran the task a moment ago - after our due()
+    // check but before we reached its lock.
+    engine()->store()->open($task)->succeed(['worked' => true], microtime(true));
+
+    $result = engine()->run($task);
+
+    expect($result)->toBe(['task' => 'hourly-task', 'ran' => false, 'state' => 'already_ran'])
+        ->and(Run::query()->count())->toBe(1);
+
+    // Manual stays explicit intent - it ignores the schedule entirely.
+    expect(engine()->run($task, manual: true)['state'])->toBe('ok');
+});
+
 it('refuses to double-run a locked task and writes no row for the refusal', function () {
     $task = new HourlyTask;
     $held = Cache::lock('omnicron:task:'.$task->key(), 60);

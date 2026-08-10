@@ -135,7 +135,7 @@ Set `OMNICRON_SECRET` in your `.env`. The endpoint **fails closed** — no secre
 Schedule::command('omnicron:tick')->everyMinute();
 ```
 
-All three triggers are interchangeable — and safe to combine. The tick decides due-ness itself, and per-task atomic locks mean a doubled tick can never double-run a task.
+All three triggers are interchangeable — and safe to combine. The tick decides due-ness itself, and a doubled tick — even simultaneous ticks from a fleet of parallel machines — can never double-run a task: each task takes an atomic lock, and the lock winner's rivals recheck due-ness before running.
 
 The JSON the tick returns says exactly what ran and what each task returned — external services that log responses are now capturing your run results remotely, for free:
 
@@ -277,7 +277,7 @@ Counts of zero are information. An empty return is not.
 | `omnicron:list` | Every registered task with its schedule and health |
 | `omnicron:prune` | Trim finished run history past the retention window |
 
-Tasks lock per key, so the same task never runs twice at once — including across multiple servers, provided your cache driver supports atomic locks (Redis, Memcached, DynamoDB, database).
+Tasks lock per key, so the same task never runs twice at once — including across multiple servers. Two requirements for a fleet: the cache store must support atomic locks (Redis, Memcached, DynamoDB, database), and every machine must point at the **same** one — locks in a per-machine cache (`file`, `array`) coordinate nothing. After winning a lock, a tick-driven run rechecks due-ness against the store, so simultaneous ticks cannot re-fire a fast task the winner already finished.
 
 ---
 
