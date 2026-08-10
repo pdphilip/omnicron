@@ -113,6 +113,16 @@ class RedisStore implements RunStore
         return null;
     }
 
+    public function lastFailureFor(OmniTask $task): ?RunRow
+    {
+        return $this->rows($task->key())->first(fn (RedisRun $run) => $run->state === RunState::FAILED);
+    }
+
+    public function firstStartFor(OmniTask $task): ?int
+    {
+        return $this->rows($task->key())->last()?->started_at;
+    }
+
     public function history(?OmniTask $task = null, int $limit = 50): Collection
     {
         $rows = $task

@@ -371,7 +371,7 @@ Pausing gates the **tick only** — a manual run is explicit intent, the same ru
 
 ## Dashboard
 
-`/omnicron/dashboard` — task health cards, the full run log with each run's returned JSON, manual triggers, pause/resume, and click-to-edit schedule overrides (the cron pill turns amber when overridden; clear it to restore the code's schedule). Served entirely by the package: no build step, no Inertia/Livewire coupling, works identically whatever your app's frontend is.
+`/omnicron/dashboard` — task health cards with the schedule in words, per-task uptime and a last-runs strip, the full run log with each run's returned JSON and a response-time chart, a queue of upcoming executions, manual triggers, pause/resume, and click-to-edit schedule overrides (the cron pill turns amber when overridden; clear it to restore the code's schedule). Every relative time ticks live. Served entirely by the package: no build step, no Inertia/Livewire coupling, works identically whatever your app's frontend is.
 
 Open in `local`. Everywhere else it follows the Horizon convention — define the gate or the dashboard stays 403:
 

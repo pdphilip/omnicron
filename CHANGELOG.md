@@ -2,6 +2,21 @@
 
 All notable changes to `pdphilip/omnicron` are documented here.
 
+## v0.1.0-beta.10 - 2026-08-10
+
+### Added
+
+- **FastCron-style dashboard**: schedule in words beside every cron pill
+  ("Every 15 minutes", "Mondays at 06:00" - `CronWords`), an uptime fact
+  per task (time since the last failure; DOWN when the latest run
+  failed), a last-runs strip of colored ticks, a response-time bar chart
+  over the run log, and a **Queued** tab listing upcoming executions
+  soonest first (`GET /api/queue`; paused tasks schedule nothing). Every
+  relative time on the page ticks live each second, alongside a UTC
+  clock.
+- `RunStore::lastFailureFor()` / `firstStartFor()` - what uptime is
+  measured from, on both stores.
+
 ## v0.1.0-beta.9 - 2026-08-10
 
 ### Added

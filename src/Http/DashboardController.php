@@ -2,11 +2,15 @@
 
 namespace PDPhilip\OmniCron\Http;
 
+use Cron\CronExpression;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use PDPhilip\OmniCron\OmniCron;
+use PDPhilip\OmniCron\OmniTask;
+use PDPhilip\OmniCron\Run\RunState;
 use PDPhilip\OmniCron\Run\Trigger;
+use PDPhilip\OmniCron\Schedule\CronWords;
 
 /**
  * The dashboard: one self-contained page plus the JSON it polls. Everything
@@ -33,14 +37,19 @@ class DashboardController
 
         $tasks = array_map(function (array $row) use ($now) {
             $task = $this->omnicron->find($row['task']);
+            $nextRunAt = $this->omnicron->nextRunAt($task, $now);
 
             return [
                 ...$row,
                 'health' => $this->health($row),
                 'health_label' => $this->healthLabel($row),
+                'schedule_words' => CronWords::toWords($row['schedule'], $row['timezone']),
                 'last_success_ago' => $row['last_success_at'] ? $this->ago($now - $row['last_success_at']) : null,
-                'next_run_in' => $this->in($this->omnicron->nextRunAt($task, $now) - $now),
+                'next_run_at' => $nextRunAt,
+                'next_run_in' => $this->in($nextRunAt - $now),
                 'duration_label' => $this->duration($row['last_duration_ms']),
+                'uptime' => $this->uptime($task, $row, $now),
+                'last_runs' => $this->lastRuns($task),
             ];
         }, $status['tasks']);
 
@@ -67,7 +76,9 @@ class DashboardController
                 'state' => $run->state->value,
                 'state_label' => $run->state->label(),
                 'when' => $this->ago($now - $run->started_at).' ago',
+                'started_ts' => $run->started_at,
                 'started_at' => date('Y-m-d H:i:s', $run->started_at),
+                'duration_ms' => $run->duration_ms,
                 'duration_label' => $run->durationLabel(),
                 'output' => $run->output,
                 'error' => $run->error,
@@ -76,6 +87,39 @@ class DashboardController
                 'manual' => (bool) $run->manual,
             ])->values(),
         ]);
+    }
+
+    /**
+     * Upcoming executions, soonest first - what FastCron calls the queue.
+     * Paused tasks schedule nothing, so they do not appear.
+     */
+    public function queue(Request $request): JsonResponse
+    {
+        $only = $request->query('task');
+        $upcoming = [];
+
+        foreach ($this->omnicron->tasks() as $task) {
+            if ($only && $task->key() !== $only) {
+                continue;
+            }
+            if ($this->omnicron->store()->job($task)->isPaused()) {
+                continue;
+            }
+
+            $expression = new CronExpression($this->omnicron->expressionFor($task));
+            foreach ($expression->getMultipleRunDates(12, 'now', false, false, $task->timezone()) as $date) {
+                $upcoming[] = [
+                    'task' => $task->key(),
+                    'label' => $task->label(),
+                    'execute_ts' => $date->getTimestamp(),
+                    'execute_at' => gmdate('Y-m-d H:i:s', $date->getTimestamp()),
+                ];
+            }
+        }
+
+        usort($upcoming, fn (array $a, array $b) => $a['execute_ts'] <=> $b['execute_ts']);
+
+        return response()->json(['queue' => array_slice($upcoming, 0, $only ? 12 : 20)]);
     }
 
     /** Fire one task from the dashboard - explicit intent, so schedule and environment gates are bypassed. */
@@ -145,6 +189,38 @@ class DashboardController
             $row['is_stale'] => 'Overdue',
             default => 'Healthy',
         };
+    }
+
+    /**
+     * FastCron's UP badge: how long since the task last failed - or since
+     * its oldest retained run when nothing ever has. A task whose latest
+     * run failed is DOWN, measured from that failure.
+     */
+    private function uptime(OmniTask $task, array $row, int $now): ?array
+    {
+        $lastFailure = $this->omnicron->store()->lastFailureFor($task);
+
+        if ($row['last_state'] === RunState::FAILED->value && $lastFailure) {
+            return ['up' => false, 'label' => $this->ago($now - $lastFailure->started_at)];
+        }
+
+        $since = $lastFailure?->started_at ?? $this->omnicron->store()->firstStartFor($task);
+
+        return $since ? ['up' => true, 'label' => $this->ago($now - $since)] : null;
+    }
+
+    /** The strip: the last dozen runs, oldest first, as colored ticks. */
+    private function lastRuns(OmniTask $task): array
+    {
+        return $this->omnicron->store()->history($task, 12)
+            ->reverse()
+            ->map(fn ($run) => [
+                'state' => $run->state->value,
+                'started_ts' => $run->started_at,
+                'duration_ms' => $run->duration_ms,
+            ])
+            ->values()
+            ->all();
     }
 
     private function duration(?int $ms): ?string

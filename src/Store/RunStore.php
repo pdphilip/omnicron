@@ -41,6 +41,12 @@ interface RunStore
 
     public function lastSuccessFor(OmniTask $task): ?RunRow;
 
+    /** The most recent FAILED run - what uptime is measured from. */
+    public function lastFailureFor(OmniTask $task): ?RunRow;
+
+    /** The oldest retained run's start - the uptime floor when nothing ever failed. */
+    public function firstStartFor(OmniTask $task): ?int;
+
     /** @return Collection<int, RunRow> newest first */
     public function history(?OmniTask $task = null, int $limit = 50): Collection;
 

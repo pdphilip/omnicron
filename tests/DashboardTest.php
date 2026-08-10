@@ -2,6 +2,8 @@
 
 use Illuminate\Support\Facades\Gate;
 use PDPhilip\OmniCron\OmniCron;
+use PDPhilip\OmniCron\Run\Trigger;
+use PDPhilip\OmniCron\Tests\Fixtures\FailingTask;
 use PDPhilip\OmniCron\Tests\Fixtures\HourlyTask;
 
 beforeEach(function () {
@@ -45,9 +47,36 @@ it('serves the overview the cards render from', function () {
         ->assertOk()
         ->assertJsonPath('tasks.0.task', 'hourly-task')
         ->assertJsonPath('tasks.0.schedule', '0 * * * *')
+        ->assertJsonPath('tasks.0.schedule_words', 'Every hour')
         ->assertJsonPath('tasks.0.health', 'ok')
         ->assertJsonPath('tasks.0.health_label', 'Healthy')
-        ->assertJsonStructure(['tasks' => [['next_run_in', 'last_success_ago']], 'stale', 'stuck', 'generated_at']);
+        ->assertJsonPath('tasks.0.uptime.up', true)
+        ->assertJsonPath('tasks.0.last_runs.0.state', 'ok')
+        ->assertJsonStructure(['tasks' => [['next_run_in', 'next_run_at', 'last_success_ago', 'last_runs']], 'stale', 'stuck', 'generated_at']);
+});
+
+it('measures uptime from the last failure', function () {
+    Gate::define('viewOmniCron', fn ($user = null) => true);
+    config()->set('omnicron.tasks', [FailingTask::class]);
+    app(OmniCron::class)->run(new FailingTask, Trigger::APP);
+
+    $this->getJson('/omnicron/dashboard/api/overview')
+        ->assertJsonPath('tasks.0.uptime.up', false);
+});
+
+it('serves the queue of upcoming executions, soonest first, skipping paused tasks', function () {
+    Gate::define('viewOmniCron', fn ($user = null) => true);
+
+    $response = $this->getJson('/omnicron/dashboard/api/queue')->assertOk();
+    $rows = $response->json('queue');
+
+    expect($rows)->toHaveCount(12)
+        ->and($rows[0]['task'])->toBe('hourly-task')
+        ->and($rows[1]['execute_ts'] - $rows[0]['execute_ts'])->toBe(3600)
+        ->and($rows[0]['execute_ts'])->toBeGreaterThan(time());
+
+    app(OmniCron::class)->pause(new HourlyTask);
+    $this->getJson('/omnicron/dashboard/api/queue')->assertJsonCount(0, 'queue');
 });
 
 it('marks a never-run task idle rather than pretending it is healthy', function () {

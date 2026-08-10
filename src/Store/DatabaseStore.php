@@ -64,6 +64,20 @@ class DatabaseStore implements RunStore
             ->first();
     }
 
+    public function lastFailureFor(OmniTask $task): ?RunRow
+    {
+        return $this->query()
+            ->where('task', $task->key())
+            ->where('state', RunState::FAILED->value)
+            ->orderByDesc('started_at')
+            ->first();
+    }
+
+    public function firstStartFor(OmniTask $task): ?int
+    {
+        return $this->query()->where('task', $task->key())->orderBy('started_at')->first()?->started_at;
+    }
+
     public function history(?OmniTask $task = null, int $limit = 50): Collection
     {
         return $this->query()
