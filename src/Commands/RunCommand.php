@@ -4,6 +4,7 @@ namespace PDPhilip\OmniCron\Commands;
 
 use Illuminate\Console\Command;
 use PDPhilip\OmniCron\OmniCron;
+use PDPhilip\OmniCron\Run\Trigger;
 
 /**
  * Fire one task by hand. Manual runs bypass the environment gate - a human
@@ -27,7 +28,7 @@ class RunCommand extends Command
             return self::FAILURE;
         }
 
-        $result = $omnicron->run($task, manual: true);
+        $result = $omnicron->run($task, Trigger::COMMAND);
 
         if (! $result['ran']) {
             $this->warn($task->key().' is already running elsewhere (locked).');

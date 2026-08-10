@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Cache;
 use PDPhilip\OmniCron\OmniCron;
 use PDPhilip\OmniCron\Run\Run;
 use PDPhilip\OmniCron\Run\RunState;
+use PDPhilip\OmniCron\Run\Trigger;
 use PDPhilip\OmniCron\Tests\Fixtures\CustomRun;
 use PDPhilip\OmniCron\Tests\Fixtures\FailingTask;
 use PDPhilip\OmniCron\Tests\Fixtures\HourlyTask;
@@ -57,7 +58,9 @@ it('runs a due task and logs the run with its output', function () {
         ->and($result['output'])->toBe(['worked' => true]);
 
     $run = Run::query()->sole();
-    expect($run->state)->toBe(RunState::OK)
+    expect($run->trigger)->toBe('schedule')
+        ->and($run->manual)->toBeFalse()
+        ->and($run->state)->toBe(RunState::OK)
         ->and($run->output)->toBe(['worked' => true])
         ->and($run->duration_ms)->not->toBeNull()
         ->and($run->finished_at)->not->toBeNull();
@@ -87,7 +90,7 @@ it('rechecks due-ness after winning the lock so parallel ticks cannot double-run
         ->and(Run::query()->count())->toBe(1);
 
     // Manual stays explicit intent - it ignores the schedule entirely.
-    expect(engine()->run($task, manual: true)['state'])->toBe('ok');
+    expect(engine()->run($task, Trigger::APP)['state'])->toBe('ok');
 });
 
 it('refuses to double-run a locked task and writes no row for the refusal', function () {
@@ -126,9 +129,12 @@ it('skips environment-gated tasks on tick but allows them manually', function ()
     expect(engine()->due())->toBe([]);
 
     // A human running it by hand is explicit intent.
-    $result = engine()->run(new ProductionOnlyTask, manual: true);
+    $result = engine()->run(new ProductionOnlyTask, Trigger::APP);
     expect($result['state'])->toBe('ok');
-    expect(Run::query()->sole()->manual)->toBeTrue();
+
+    $run = Run::query()->sole();
+    expect($run->manual)->toBeTrue()
+        ->and($run->trigger)->toBe('app');
 });
 
 // ======================================================================

@@ -225,7 +225,7 @@
                 <span class="s-dot s-${esc(r.state)}"></span>
                 <span class="who">
                     <span class="t">${esc(r.label)}</span>
-                    ${r.manual ? '<span class="chip">manual</span>' : ''}
+                    ${(r.trigger && r.trigger !== 'schedule') ? `<span class="chip">${esc(r.trigger)}</span>` : (r.manual ? '<span class="chip">manual</span>' : '')}
                     ${r.error ? `<span class="chip" style="color:var(--danger);border-color:rgba(242,85,90,.3)">${esc(r.error.slice(0, 40))}</span>` : ''}
                 </span>
                 <span class="when">${esc(r.when)}</span>

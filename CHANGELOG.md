@@ -2,6 +2,26 @@
 
 All notable changes to `pdphilip/omnicron` are documented here.
 
+## v0.1.0-beta.9 - 2026-08-10
+
+### Added
+
+- **`Trigger` enum - every run records who asked for it**: `schedule` (a
+  tick found it due), `dashboard` (the Run now button), `endpoint`
+  (`GET /omnicron/run/{task}`), `command` (`artisan omnicron:run`), `app`
+  (your own code calling `OmniCron::run()`). `retry` is reserved for the
+  auto-retry roadmap. The dashboard's run log chips name the surface.
+
+### Changed
+
+- BREAKING: `OmniCron::run()` and `RunStore::open()` take a `Trigger`
+  instead of `bool $manual`. The `manual` flag stays on every row,
+  derived from the trigger (`isManual()` = anything but schedule), so
+  existing queries keep working. SQL stores need the new string column:
+  re-publish the migration or `ALTER TABLE omnicron_runs ADD trigger
+  VARCHAR(255) DEFAULT 'schedule'`. EsRun mappings gain a `trigger`
+  keyword field - update the mapping before deploying.
+
 ## v0.1.0-beta.8 - 2026-08-10
 
 ### Changed

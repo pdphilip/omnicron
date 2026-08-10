@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static \PDPhilip\OmniCron\OmniTask|null find(string $key)
  * @method static bool isDue(\PDPhilip\OmniCron\OmniTask $task, ?int $now = null)
  * @method static array<int, \PDPhilip\OmniCron\OmniTask> due(?int $now = null)
- * @method static array run(\PDPhilip\OmniCron\OmniTask $task, bool $manual = false)
+ * @method static array run(\PDPhilip\OmniCron\OmniTask $task, \PDPhilip\OmniCron\Run\Trigger $trigger = \PDPhilip\OmniCron\Run\Trigger::SCHEDULE)
  * @method static array tick()
  * @method static array status()
  * @method static string expressionFor(\PDPhilip\OmniCron\OmniTask $task)

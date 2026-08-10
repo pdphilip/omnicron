@@ -11,6 +11,7 @@ use PDPhilip\OmniCron\OmniTask;
 use PDPhilip\OmniCron\Run\RedisRun;
 use PDPhilip\OmniCron\Run\RunRow;
 use PDPhilip\OmniCron\Run\RunState;
+use PDPhilip\OmniCron\Run\Trigger;
 
 /**
  * Runs in Redis - the Horizon way: zero migrations, nothing to install,
@@ -51,7 +52,7 @@ class RedisStore implements RunStore
         return config('omnicron.redis.job_prefix', 'omnicron:jobs:').$taskKey;
     }
 
-    public function open(OmniTask $task, bool $manual = false): RunRow
+    public function open(OmniTask $task, Trigger $trigger = Trigger::SCHEDULE): RunRow
     {
         $run = new RedisRun(
             id: (string) Str::uuid(),
@@ -59,7 +60,8 @@ class RedisStore implements RunStore
             state: RunState::RUNNING,
             started_at: time(),
             host: gethostname() ?: null,
-            manual: $manual,
+            trigger: $trigger->value,
+            manual: $trigger->isManual(),
             store: $this,
         );
 

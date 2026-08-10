@@ -6,6 +6,7 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use PDPhilip\OmniCron\OmniCron;
+use PDPhilip\OmniCron\Run\Trigger;
 
 /**
  * The dashboard: one self-contained page plus the JSON it polls. Everything
@@ -71,12 +72,13 @@ class DashboardController
                 'output' => $run->output,
                 'error' => $run->error,
                 'host' => $run->host,
+                'trigger' => $run->trigger,
                 'manual' => (bool) $run->manual,
             ])->values(),
         ]);
     }
 
-    /** Fire one task from the dashboard - manual, so the environment gate is bypassed. */
+    /** Fire one task from the dashboard - explicit intent, so schedule and environment gates are bypassed. */
     public function run(string $task): JsonResponse
     {
         $found = $this->omnicron->find($task);
@@ -85,7 +87,7 @@ class DashboardController
             return response()->json(['error' => 'Unknown task: '.$task], 404);
         }
 
-        return response()->json($this->omnicron->run($found, manual: true));
+        return response()->json($this->omnicron->run($found, Trigger::DASHBOARD));
     }
 
     /**

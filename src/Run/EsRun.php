@@ -28,6 +28,7 @@ class EsRun extends Model implements RunRow
         $index->long('finished_at');
         $index->integer('duration_ms');
         $index->keyword('host');
+        $index->keyword('trigger');
         $index->boolean('manual');
         $index->text('error');
     }

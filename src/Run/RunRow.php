@@ -15,6 +15,7 @@ namespace PDPhilip\OmniCron\Run;
  * @property array|null $output
  * @property string|null $error
  * @property string|null $host
+ * @property ?string $trigger
  * @property bool $manual
  */
 interface RunRow

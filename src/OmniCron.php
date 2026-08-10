@@ -5,6 +5,7 @@ namespace PDPhilip\OmniCron;
 use Cron\CronExpression;
 use Illuminate\Support\Facades\Cache;
 use PDPhilip\OmniCron\Run\RunState;
+use PDPhilip\OmniCron\Run\Trigger;
 use PDPhilip\OmniCron\Store\RunStore;
 use Throwable;
 
@@ -136,7 +137,7 @@ class OmniCron
      *
      * @return array<string, mixed>
      */
-    public function run(OmniTask $task, bool $manual = false): array
+    public function run(OmniTask $task, Trigger $trigger = Trigger::SCHEDULE): array
     {
         $lock = Cache::store(config('omnicron.cache_store'))
             ->lock(config('omnicron.lock_prefix', 'omnicron:task:').$task->key(), $task->lockSeconds());
@@ -150,14 +151,14 @@ class OmniCron
         // against the store (last start moved) so simultaneous ticks from
         // parallel machines cannot double-fire. Manual runs skip this - they
         // ignore the schedule by design.
-        if (! $manual && ! $this->isDue($task)) {
+        if ($trigger === Trigger::SCHEDULE && ! $this->isDue($task)) {
             $lock->release();
 
             return ['task' => $task->key(), 'ran' => false, 'state' => 'already_ran'];
         }
 
         // Claimed before the work starts - an unfinished run must leave a row.
-        $run = $this->store->open($task, $manual);
+        $run = $this->store->open($task, $trigger);
         $started = microtime(true);
 
         try {

@@ -11,6 +11,7 @@ use PDPhilip\OmniCron\OmniTask;
 use PDPhilip\OmniCron\Run\Run;
 use PDPhilip\OmniCron\Run\RunRow;
 use PDPhilip\OmniCron\Run\RunState;
+use PDPhilip\OmniCron\Run\Trigger;
 
 /**
  * Runs in Eloquent. Which Eloquent is the app's choice: the bundled Run
@@ -30,14 +31,15 @@ class DatabaseStore implements RunStore
         );
     }
 
-    public function open(OmniTask $task, bool $manual = false): RunRow
+    public function open(OmniTask $task, Trigger $trigger = Trigger::SCHEDULE): RunRow
     {
         $run = $this->model();
         $run->task = $task->key();
         $run->state = RunState::RUNNING;
         $run->started_at = time();
         $run->host = gethostname() ?: null;
-        $run->manual = $manual;
+        $run->trigger = $trigger->value;
+        $run->manual = $trigger->isManual();
         $run->save();
 
         return $run;

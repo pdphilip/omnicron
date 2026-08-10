@@ -6,6 +6,7 @@ use Illuminate\Support\Collection;
 use PDPhilip\OmniCron\Job\JobRow;
 use PDPhilip\OmniCron\OmniTask;
 use PDPhilip\OmniCron\Run\RunRow;
+use PDPhilip\OmniCron\Run\Trigger;
 
 /**
  * Where run history lives. The database driver is the default - durable and
@@ -27,7 +28,7 @@ interface RunStore
     public function job(OmniTask $task): JobRow;
 
     /** Claim the run BEFORE the work starts - a crash must leave a trace. */
-    public function open(OmniTask $task, bool $manual = false): RunRow;
+    public function open(OmniTask $task, Trigger $trigger = Trigger::SCHEDULE): RunRow;
 
     /**
      * The unix timestamp the task last STARTED, including failed and

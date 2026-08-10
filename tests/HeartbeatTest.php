@@ -55,7 +55,9 @@ it('runs one task by hand and 404s an unknown key', function () {
         ->assertOk()
         ->assertJsonPath('state', 'ok');
 
-    expect(Run::query()->sole()->manual)->toBeTrue();
+    $run = Run::query()->sole();
+    expect($run->manual)->toBeTrue()
+        ->and($run->trigger)->toBe('endpoint');
 
     $this->getJson('/omnicron/run/nope', ['X-OmniCron-Secret' => 'shh'])->assertStatus(404);
 });

@@ -4,6 +4,7 @@ namespace PDPhilip\OmniCron\Http;
 
 use Illuminate\Http\JsonResponse;
 use PDPhilip\OmniCron\OmniCron;
+use PDPhilip\OmniCron\Run\Trigger;
 
 /**
  * The three urls a scheduling service needs. What each returns is designed
@@ -37,6 +38,6 @@ class HeartbeatController
             return response()->json(['error' => 'Unknown task: '.$task], 404);
         }
 
-        return response()->json($this->omnicron->run($found, manual: true));
+        return response()->json($this->omnicron->run($found, Trigger::ENDPOINT));
     }
 }

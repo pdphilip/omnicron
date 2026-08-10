@@ -3,6 +3,7 @@
 use PDPhilip\OmniCron\Job\CronJob;
 use PDPhilip\OmniCron\OmniCron;
 use PDPhilip\OmniCron\Run\Run;
+use PDPhilip\OmniCron\Run\Trigger;
 use PDPhilip\OmniCron\Tests\Fixtures\HourlyTask;
 
 function control(): OmniCron
@@ -35,7 +36,7 @@ it('creates the control row lazily, recording which class the key belongs to', f
 it('relates a job to its run log - CronJob and its runs are the two models', function () {
     control()->run(new HourlyTask);
     // A second run inside the hour is only legitimate as explicit intent.
-    control()->run(new HourlyTask, manual: true);
+    control()->run(new HourlyTask, Trigger::APP);
 
     $job = control()->store()->job(new HourlyTask);
 
@@ -54,7 +55,7 @@ it('pauses a task out of the tick but never out of a manual run', function () {
     expect(control()->due())->toBe([]);
 
     // A human pressing the button is explicit intent - same rule as environments().
-    $result = control()->run(new HourlyTask, manual: true);
+    $result = control()->run(new HourlyTask, Trigger::APP);
     expect($result['state'])->toBe('ok');
 });
 

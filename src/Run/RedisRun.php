@@ -20,6 +20,7 @@ class RedisRun implements RunRow
         public ?array $output = null,
         public ?string $error = null,
         public ?string $host = null,
+        public ?string $trigger = null,
         public bool $manual = false,
         private ?RedisStore $store = null,
     ) {}
@@ -75,6 +76,7 @@ class RedisRun implements RunRow
             'output' => $this->output,
             'error' => $this->error,
             'host' => $this->host,
+            'trigger' => $this->trigger,
             'manual' => $this->manual,
         ];
     }
@@ -91,6 +93,7 @@ class RedisRun implements RunRow
             output: $data['output'] ?? null,
             error: $data['error'] ?? null,
             host: $data['host'] ?? null,
+            trigger: $data['trigger'] ?? null,
             manual: (bool) ($data['manual'] ?? false),
             store: $store,
         );
