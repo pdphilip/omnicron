@@ -271,7 +271,7 @@ Counts of zero are information. An empty return is not.
 
 | Command | What it does |
 |---|---|
-| `omnicron:task {Name}` | Scaffold a new task class |
+| `omnicron:task {Name}` | Scaffold a new task class (into `task_namespace`, default `App\OmniCron`) |
 | `omnicron:tick` | Run everything due. This is your one crontab entry. |
 | `omnicron:run {task}` | Run one task now, ignoring schedule and environment |
 | `omnicron:list` | Every registered task with its schedule and health |

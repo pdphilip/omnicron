@@ -2,6 +2,14 @@
 
 All notable changes to `pdphilip/omnicron` are documented here.
 
+## v0.1.0-beta.7 - 2026-08-10
+
+### Added
+
+- `task_namespace` config - where `omnicron:task` scaffolds new classes,
+  with the directory derived from it (`App\Crons` -> `app/Crons`).
+  Default `App\OmniCron`, unchanged.
+
 ## v0.1.0-beta.6 - 2026-08-10
 
 ### Fixed

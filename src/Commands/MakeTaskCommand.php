@@ -7,9 +7,9 @@ use Illuminate\Support\Str;
 
 /**
  * Scaffold a task class - the one unified way a job is created, run and
- * managed. Lands in app/OmniCron by default; register it in
- * config/omnicron.php and it is scheduled, locked, logged and health-checked
- * like everything else.
+ * managed. Lands wherever config('omnicron.task_namespace') points
+ * (app/OmniCron by default); register it in config/omnicron.php and it is
+ * scheduled, locked, logged and health-checked like everything else.
  */
 class MakeTaskCommand extends Command
 {
@@ -20,7 +20,8 @@ class MakeTaskCommand extends Command
     public function handle(): int
     {
         $class = Str::studly($this->argument('name'));
-        $directory = app_path('OmniCron');
+        $namespace = trim(config('omnicron.task_namespace', 'App\\OmniCron'), '\\');
+        $directory = app_path(str_replace('\\', '/', Str::after($namespace, 'App\\')));
         $path = $directory.'/'.$class.'.php';
 
         if (file_exists($path)) {
@@ -36,7 +37,7 @@ class MakeTaskCommand extends Command
         $stub = file_get_contents(__DIR__.'/stubs/task.php.stub');
         file_put_contents($path, str_replace(
             ['{{ namespace }}', '{{ class }}'],
-            ['App\\OmniCron', $class],
+            [$namespace, $class],
             $stub,
         ));
 
@@ -45,7 +46,7 @@ class MakeTaskCommand extends Command
         $this->line('Register it in <comment>config/omnicron.php</comment>:');
         $this->line('');
         $this->line("    'tasks' => [");
-        $this->line("        App\\OmniCron\\{$class}::class,");
+        $this->line("        {$namespace}\\{$class}::class,");
         $this->line('    ],');
 
         return self::SUCCESS;

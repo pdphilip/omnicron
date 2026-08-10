@@ -10,8 +10,11 @@ return [
     | Tasks
     |--------------------------------------------------------------------------
     | Every registered task class. Create one with `php artisan omnicron:task`
-    | and list it here - that is the whole registration.
+    | and list it here - that is the whole registration. task_namespace is
+    | where the scaffolder puts new classes (the directory derives from it:
+    | App\Crons -> app/Crons).
     */
+    'task_namespace' => 'App\\OmniCron',
     'tasks' => [
         // App\OmniCron\PurgeSessions::class,
     ],
