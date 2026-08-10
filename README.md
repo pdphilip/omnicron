@@ -45,7 +45,7 @@ OmniCron keeps the record:
 | **When it last succeeded** | separately from when it last *ran* |
 | **What died mid-flight** | the run is recorded **before** the work starts, so a fatal leaves evidence instead of silence |
 
-That last one is the point. A task that throws can report itself. A task that gets OOM-killed, times out, or has its container reaped cannot — and those are exactly the failures worth knowing about. OmniCron writes the row first, so an unfinished run is a visible fact rather than an absence.
+That last one is the point. A task that throws can report itself. A task that gets OOM-killed, times out, or has its container reaped cannot - and those are exactly the failures worth knowing about. OmniCron writes the row first, so an unfinished run is a visible fact rather than an absence.
 
 ---
 
@@ -112,7 +112,7 @@ class PurgeSessions extends OmniTask
 
 ### 3. Give it a heartbeat
 
-One heartbeat a minute, forever. New tasks are just new classes — nothing outside your codebase ever changes again.
+One heartbeat a minute, forever. New tasks are just new classes - nothing outside your codebase ever changes again.
 
 **From crontab:**
 
@@ -120,14 +120,14 @@ One heartbeat a minute, forever. New tasks are just new classes — nothing outs
 * * * * * cd /path-to-your-project && php artisan omnicron:tick >> /dev/null 2>&1
 ```
 
-**Or from any scheduling service** (FastCron, cron-job.org, UptimeRobot, a GitHub Action) — point it at the tick url once a minute:
+**Or from any scheduling service** (FastCron, cron-job.org, UptimeRobot, a GitHub Action) - point it at the tick url once a minute:
 
 ```
 GET https://your-app.com/omnicron/tick
 X-OmniCron-Secret: <OMNICRON_SECRET>
 ```
 
-The secret is **opt-in**: leave `OMNICRON_SECRET` unset and the urls are public — fine for a zero-config heartbeat, since due-ness and locks decide what actually runs. Set it and every request must present it (services that only take a plain url can pass `?token=<secret>` instead of the header). **Set it** when any task is production-gated or should not be a stranger's button to press — `/omnicron/run/{task}` bypasses both the schedule and the environment gate.
+The secret is **opt-in**: leave `OMNICRON_SECRET` unset and the urls are public - fine for a zero-config heartbeat, since due-ness and locks decide what actually runs. Set it and every request must present it (services that only take a plain url can pass `?token=<secret>` instead of the header). **Set it** when any task is production-gated or should not be a stranger's button to press - `/omnicron/run/{task}` bypasses both the schedule and the environment gate.
 
 **Or from the Laravel scheduler**, if your app already runs `schedule:run`:
 
@@ -135,9 +135,9 @@ The secret is **opt-in**: leave `OMNICRON_SECRET` unset and the urls are public 
 Schedule::command('omnicron:tick')->everyMinute();
 ```
 
-All three triggers are interchangeable — and safe to combine. The tick decides due-ness itself, and a doubled tick — even simultaneous ticks from a fleet of parallel machines — can never double-run a task: each task takes an atomic lock, and the lock winner's rivals recheck due-ness before running.
+All three triggers are interchangeable - and safe to combine. The tick decides due-ness itself, and a doubled tick - even simultaneous ticks from a fleet of parallel machines - can never double-run a task: each task takes an atomic lock, and the lock winner's rivals recheck due-ness before running.
 
-The JSON the tick returns says exactly what ran and what each task returned — external services that log responses are now capturing your run results remotely, for free:
+The JSON the tick returns says exactly what ran and what each task returned - external services that log responses are now capturing your run results remotely, for free:
 
 ```json
 {
@@ -199,7 +199,7 @@ $schedule->everyDay()->at('06:00')->timezone('Africa/Johannesburg');
 
 ### When the fluent form cannot say it
 
-Some intervals have no cron form — "every 90 minutes" is the classic. Rather than quietly doing something else, OmniCron throws, and leaves you an escape hatch:
+Some intervals have no cron form - "every 90 minutes" is the classic. Rather than quietly doing something else, OmniCron throws, and leaves you an escape hatch:
 
 ```php
 $schedule->cron('0 0 1 */3 *');
@@ -263,7 +263,7 @@ return [];                                      // tells you nothing
 
 Counts of zero are information. An empty return is not.
 
-**Throw to fail.** OmniCron records the message and marks the run failed. Do not catch and return an error shape — a failure that reports itself as success is worse than a crash.
+**Throw to fail.** OmniCron records the message and marks the run failed. Do not catch and return an error shape - a failure that reports itself as success is worse than a crash.
 
 ---
 
@@ -279,7 +279,7 @@ Counts of zero are information. An empty return is not.
 
 Every run records **what asked for it** - `schedule` (the tick), `dashboard`, `endpoint`, `command`, or `app` (your own code) - so "who ran this at 3am" is a stored fact, not a guess.
 
-Tasks lock per key, so the same task never runs twice at once — including across multiple servers. Two requirements for a fleet: the cache store must support atomic locks (Redis, Memcached, DynamoDB, database), and every machine must point at the **same** one — locks in a per-machine cache (`file`, `array`) coordinate nothing. After winning a lock, a tick-driven run rechecks due-ness against the store, so simultaneous ticks cannot re-fire a fast task the winner already finished.
+Tasks lock per key, so the same task never runs twice at once - including across multiple servers. Two requirements for a fleet: the cache store must support atomic locks (Redis, Memcached, DynamoDB, database), and every machine must point at the **same** one - locks in a per-machine cache (`file`, `array`) coordinate nothing. After winning a lock, a tick-driven run rechecks due-ness against the store, so simultaneous ticks cannot re-fire a fast task the winner already finished.
 
 ---
 
@@ -350,8 +350,8 @@ There is also `'connection' => 'mysql'` for the simpler case of pointing the bun
 
 Your code defines the tasks; two models mirror them:
 
-- **`CronJob`** — one row per registered task, created lazily. This is the operator's handle: it holds `paused` and `schedule_override`, the two things an operator may change without a deploy. Everything else stays in code.
-- **The run model** (`Run` / `MongoRun` / `EsRun` / yours) — the log. Reached from the registry as a plain relationship.
+- **`CronJob`** - one row per registered task, created lazily. This is the operator's handle: it holds `paused` and `schedule_override`, the two things an operator may change without a deploy. Everything else stays in code.
+- **The run model** (`Run` / `MongoRun` / `EsRun` / yours) - the log. Reached from the registry as a plain relationship.
 
 ```php
 use PDPhilip\OmniCron\Job\CronJob;
@@ -365,19 +365,19 @@ OmniCron::overrideSchedule($task, '*/5 * * * *');  // wins over the code until c
 OmniCron::overrideSchedule($task, null);           // back to what the code says
 ```
 
-Pausing gates the **tick only** — a manual run is explicit intent, the same rule as `environments()`. An override must be a valid cron expression (invalid input throws; an invalid stored value is ignored rather than obeyed). `MongoCronJob` is bundled for Mongo apps — set `'job_model' => MongoCronJob::class` and pair it with `MongoRun` so the relationship stays same-connection. On the Redis store, operator state lives in a Redis hash — no models, same controls.
+Pausing gates the **tick only** - a manual run is explicit intent, the same rule as `environments()`. An override must be a valid cron expression (invalid input throws; an invalid stored value is ignored rather than obeyed). `MongoCronJob` is bundled for Mongo apps - set `'job_model' => MongoCronJob::class` and pair it with `MongoRun` so the relationship stays same-connection. On the Redis store, operator state lives in a Redis hash - no models, same controls.
 
 ---
 
 ## Dashboard
 
-`/omnicron/dashboard` — task health cards with the schedule in words, per-task uptime and a last-runs strip, the full run log with each run's returned JSON and a response-time chart, a queue of upcoming executions, manual triggers, pause/resume, and click-to-edit schedule overrides (the cron pill turns amber when overridden; clear it to restore the code's schedule). Every relative time ticks live. Served entirely by the package: no build step, no Inertia/Livewire coupling, works identically whatever your app's frontend is.
+`/omnicron/dashboard` - task health cards with the schedule in words, per-task uptime and a last-runs strip, the full run log with each run's returned JSON and a response-time chart, a queue of upcoming executions, manual triggers, pause/resume, and click-to-edit schedule overrides (the cron pill turns amber when overridden; clear it to restore the code's schedule). Every relative time ticks live. Served entirely by the package: no build step, no Inertia/Livewire coupling, works identically whatever your app's frontend is.
 
-### Authorization — the Horizon convention
+### Authorization - the Horizon convention
 
-Open in `local`. Everywhere else the `viewOmniCron` gate must exist **and** pass — no gate means nobody gets in (fails closed).
+Open in `local`. Everywhere else the `viewOmniCron` gate must exist **and** pass - no gate means nobody gets in (fails closed).
 
-`omnicron:install` drops `App\Providers\OmniCronServiceProvider` into your app and registers it — list the specific users who may enter:
+`omnicron:install` drops `App\Providers\OmniCronServiceProvider` into your app and registers it - list the specific users who may enter:
 
 ```php
 Gate::define('viewOmniCron', function ($user) {
@@ -399,13 +399,13 @@ Path and middleware live in `config('omnicron.dashboard')`.
 
 ## Roadmap
 
-- **Queued tasks** — `queued()` exists on the base class and is reserved; v0 runs every task inline.
-- **Notifications** — `notify()` from inside a task, plus automatic alerts after repeated failures.
-- **Remote store** — POST run results to a collector service; the `RunStore` interface is ready for it.
+- **Queued tasks** - `queued()` exists on the base class and is reserved; v0 runs every task inline.
+- **Notifications** - `notify()` from inside a task, plus automatic alerts after repeated failures.
+- **Remote store** - POST run results to a collector service; the `RunStore` interface is ready for it.
 
 ## Not a Scheduler Replacement
 
-OmniCron deliberately does not reimplement `Illuminate\Console\Scheduling`. There is no `between()`, no `withoutOverlapping()` chain, no sub-minute frequency — the heartbeat is a hard floor of one minute.
+OmniCron deliberately does not reimplement `Illuminate\Console\Scheduling`. There is no `between()`, no `withoutOverlapping()` chain, no sub-minute frequency - the heartbeat is a hard floor of one minute.
 
 It is a small, opinionated registry for the handful of recurring jobs that matter, with strong observability around them. If you need the full scheduler, use the full scheduler. They coexist fine.
 
