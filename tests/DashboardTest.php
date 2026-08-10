@@ -35,6 +35,16 @@ it('opens freely in the local environment', function () {
     $this->get('/omnicron/dashboard')->assertOk();
 });
 
+it('publishes the app-side gate provider - the Horizon convention', function () {
+    $target = base_path('app/Providers/OmniCronServiceProvider.php');
+    @unlink($target);
+
+    $this->artisan('vendor:publish', ['--tag' => 'omnicron-provider'])->assertSuccessful();
+
+    expect(file_get_contents($target))->toContain("Gate::define('viewOmniCron'");
+    unlink($target);
+});
+
 // ======================================================================
 // The dashboard API
 // ======================================================================

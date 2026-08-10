@@ -24,6 +24,7 @@ class OmniCronServiceProvider extends PackageServiceProvider
             ->hasViews()
             ->hasMigration('create_omnicron_runs_table')
             ->hasMigration('create_omnicron_jobs_table')
+            ->publishesServiceProvider('OmniCronServiceProvider')
             ->hasCommands([
                 MakeTaskCommand::class,
                 TickCommand::class,
@@ -35,6 +36,7 @@ class OmniCronServiceProvider extends PackageServiceProvider
                 $command
                     ->publishConfigFile()
                     ->publishMigrations()
+                    ->copyAndRegisterServiceProviderInApp()
                     ->askToRunMigrations()
                     ->askToStarRepoOnGitHub('pdphilip/omnicron');
             });

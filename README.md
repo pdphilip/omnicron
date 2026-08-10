@@ -373,10 +373,23 @@ Pausing gates the **tick only** — a manual run is explicit intent, the same ru
 
 `/omnicron/dashboard` — task health cards with the schedule in words, per-task uptime and a last-runs strip, the full run log with each run's returned JSON and a response-time chart, a queue of upcoming executions, manual triggers, pause/resume, and click-to-edit schedule overrides (the cron pill turns amber when overridden; clear it to restore the code's schedule). Every relative time ticks live. Served entirely by the package: no build step, no Inertia/Livewire coupling, works identically whatever your app's frontend is.
 
-Open in `local`. Everywhere else it follows the Horizon convention — define the gate or the dashboard stays 403:
+### Authorization — the Horizon convention
+
+Open in `local`. Everywhere else the `viewOmniCron` gate must exist **and** pass — no gate means nobody gets in (fails closed).
+
+`omnicron:install` drops `App\Providers\OmniCronServiceProvider` into your app and registers it — list the specific users who may enter:
 
 ```php
-// AppServiceProvider::boot()
+Gate::define('viewOmniCron', function ($user) {
+    return in_array($user->email, [
+        'you@example.com',
+    ]);
+});
+```
+
+Or swap the check for any rule your app already has:
+
+```php
 Gate::define('viewOmniCron', fn ($user) => $user->isAdmin());
 ```
 

@@ -1,0 +1,26 @@
+<?php
+
+namespace App\Providers;
+
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\ServiceProvider;
+
+class OmniCronServiceProvider extends ServiceProvider
+{
+    /**
+     * Who may see the OmniCron dashboard.
+     *
+     * The local environment is always open; everywhere else this gate must
+     * pass - and no gate defined at all means nobody gets in. List the
+     * specific users, or swap the check for any rule your app already has
+     * (an admin flag, a role, a permission).
+     */
+    public function boot(): void
+    {
+        Gate::define('viewOmniCron', function ($user) {
+            return in_array($user->email, [
+                //
+            ]);
+        });
+    }
+}

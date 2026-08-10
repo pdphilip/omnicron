@@ -2,6 +2,16 @@
 
 All notable changes to `pdphilip/omnicron` are documented here.
 
+## v0.1.0-beta.11 - 2026-08-10
+
+### Added
+
+- **Horizon-style authorization scaffold** - `omnicron:install` now
+  publishes `App\Providers\OmniCronServiceProvider` (and registers it)
+  with the `viewOmniCron` gate ready for a list of specific users. The
+  middleware behavior is unchanged: local open, everywhere else the gate
+  must exist and pass, failing closed.
+
 ## v0.1.0-beta.10 - 2026-08-10
 
 ### Added
