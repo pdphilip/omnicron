@@ -8,9 +8,12 @@ use Illuminate\Http\Request;
 /**
  * Shared-secret gate for the heartbeat endpoints.
  *
- * FAILS CLOSED: no configured secret means every request is refused. A
- * stopped scheduler is loud - the heartbeat service reports the failures -
- * but an open one is silent, and these urls can run anything you scheduled.
+ * Opt-in: no configured secret means the endpoints are public - the tick is
+ * idempotent (due-ness, locks and the post-lock recheck decide what runs)
+ * and some setups want a zero-config heartbeat. Set OMNICRON_SECRET and
+ * every request must present it. Do set it when any task is gated to
+ * production or does something a stranger should not trigger by hand:
+ * /run/{task} bypasses both the schedule and the environment gate.
  *
  * The secret rides the X-OmniCron-Secret header, or ?token= for scheduling
  * services that only accept a plain url.
@@ -23,8 +26,9 @@ class VerifySecret
     {
         $secret = config('omnicron.endpoint.secret');
 
+        // No secret configured = deliberately public.
         if (! $secret) {
-            return response()->json(['error' => 'OmniCron secret is not configured'], 503);
+            return $next($request);
         }
 
         $provided = $request->header(self::HEADER) ?? $request->query('token');

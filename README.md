@@ -127,7 +127,7 @@ GET https://your-app.com/omnicron/tick
 X-OmniCron-Secret: <OMNICRON_SECRET>
 ```
 
-Set `OMNICRON_SECRET` in your `.env`. The endpoint **fails closed** — no secret configured means every request is refused. Services that only take a plain url can pass `?token=<secret>` instead of the header.
+The secret is **opt-in**: leave `OMNICRON_SECRET` unset and the urls are public — fine for a zero-config heartbeat, since due-ness and locks decide what actually runs. Set it and every request must present it (services that only take a plain url can pass `?token=<secret>` instead of the header). **Set it** when any task is production-gated or should not be a stranger's button to press — `/omnicron/run/{task}` bypasses both the schedule and the environment gate.
 
 **Or from the Laravel scheduler**, if your app already runs `schedule:run`:
 

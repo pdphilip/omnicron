@@ -2,6 +2,17 @@
 
 All notable changes to `pdphilip/omnicron` are documented here.
 
+## v0.1.0-beta.8 - 2026-08-10
+
+### Changed
+
+- **The endpoint secret is now opt-in** - no `OMNICRON_SECRET` means the
+  heartbeat urls are public (previously refused with 503). The tick is
+  idempotent either way; set the secret when any task is production-gated
+  or should not be manually triggerable by strangers, since
+  `/omnicron/run/{task}` bypasses both the schedule and the environment
+  gate.
+
 ## v0.1.0-beta.7 - 2026-08-10
 
 ### Added

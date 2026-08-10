@@ -12,10 +12,10 @@ beforeEach(function () {
 // The secret gate
 // ======================================================================
 
-it('fails closed when no secret is configured', function () {
+it('is public when no secret is configured - the secret is opt-in', function () {
     config()->set('omnicron.endpoint.secret', null);
 
-    $this->getJson('/omnicron/tick')->assertStatus(503);
+    $this->getJson('/omnicron/tick')->assertOk();
 });
 
 it('refuses a missing or wrong secret', function () {

@@ -24,10 +24,11 @@ return [
     | Heartbeat endpoint
     |--------------------------------------------------------------------------
     | Point any scheduling service (or curl in a crontab) at GET
-    | /{path}/tick once a minute with the X-OmniCron-Secret header (or
-    | ?token=). No secret configured = every request refused - the endpoint
-    | fails closed. /{path}/status reports health; /{path}/run/{task} fires
-    | one task by hand.
+    | /{path}/tick once a minute. The secret is opt-in: unset = the urls
+    | are public; set = every request must present it (X-OmniCron-Secret
+    | header or ?token=). Set it when any task is production-gated or
+    | should not be a stranger's button - /{path}/run/{task} bypasses both
+    | the schedule and the environment gate. /{path}/status reports health.
     */
     'endpoint' => [
         'enabled' => true,
