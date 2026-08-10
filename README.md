@@ -129,6 +129,14 @@ X-OmniCron-Secret: <OMNICRON_SECRET>
 
 Set `OMNICRON_SECRET` in your `.env`. The endpoint **fails closed** — no secret configured means every request is refused. Services that only take a plain url can pass `?token=<secret>` instead of the header.
 
+**Or from the Laravel scheduler**, if your app already runs `schedule:run`:
+
+```php
+Schedule::command('omnicron:tick')->everyMinute();
+```
+
+All three triggers are interchangeable — and safe to combine. The tick decides due-ness itself, and per-task atomic locks mean a doubled tick can never double-run a task.
+
 The JSON the tick returns says exactly what ran and what each task returned — external services that log responses are now capturing your run results remotely, for free:
 
 ```json
