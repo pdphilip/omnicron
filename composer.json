@@ -20,17 +20,17 @@
     "require": {
         "php": "^8.2",
         "dragonmantank/cron-expression": "^3.3",
-        "illuminate/contracts": "^10.0|^11.0|^12.0",
-        "illuminate/support": "^10.0|^11.0|^12.0",
+        "illuminate/contracts": "^11.0||^12.0||^13.0",
+        "illuminate/support": "^11.0||^12.0||^13.0",
         "spatie/laravel-package-tools": "^1.16"
     },
     "require-dev": {
-        "larastan/larastan": "^2.9",
+        "larastan/larastan": "^3",
         "laravel/pint": "^1.24",
-        "nunomaduro/collision": "^8.1.1||^7.10.0",
-        "orchestra/testbench": "^9.0.0||^8.22.0",
-        "pestphp/pest": "^2.34",
-        "pestphp/pest-plugin-laravel": "^2.3",
+        "nunomaduro/collision": "^8.1.1",
+        "orchestra/testbench": "^9.0||^10.0||^11.0",
+        "pestphp/pest": "^3||^4",
+        "pestphp/pest-plugin-laravel": "^3||^4",
         "predis/predis": "^3.5"
     },
     "autoload": {
@@ -45,7 +45,26 @@
     },
     "scripts": {
         "test": "vendor/bin/pest",
-        "format": "vendor/bin/pint"
+        "test:unit": "vendor/bin/pest --colors=always",
+        "test:l11": [
+            "@composer update --with laravel/framework:^11.0 --prefer-stable --no-interaction --quiet",
+            "@test:unit"
+        ],
+        "test:l12": [
+            "@composer update --with laravel/framework:^12.0 --prefer-stable --no-interaction --quiet",
+            "@test:unit"
+        ],
+        "test:l13": [
+            "@composer update --with laravel/framework:^13.0 --prefer-stable --no-interaction --quiet",
+            "@test:unit"
+        ],
+        "test:all": [
+            "@test:l11",
+            "@test:l12",
+            "@test:l13"
+        ],
+        "format": "vendor/bin/pint",
+        "lint": "vendor/bin/pint --test -v"
     },
     "config": {
         "sort-packages": true,

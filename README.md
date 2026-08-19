@@ -53,8 +53,8 @@ That last one is the point. A task that throws can report itself. A task that ge
 
 | | Version |
 |---|---|
-| PHP | 8.2+ |
-| Laravel | 10, 11, 12 |
+| PHP | 8.2+ (8.3+ on Laravel 13) |
+| Laravel | 11, 12, 13 |
 
 ---
 

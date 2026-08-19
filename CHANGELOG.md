@@ -2,6 +2,27 @@
 
 All notable changes to `pdphilip/omnicron` are documented here.
 
+## v0.1.0-beta.12 - 2026-08-19
+
+### Added
+
+- **Laravel 13 support.** The full suite (76 tests) runs green on Laravel
+  11, 12 and 13. Composer scripts `test:l11`, `test:l12`, `test:l13` and
+  `test:all` switch the framework in place and re-run the tests.
+- **CI**: `run-tests.yml` (PHP 8.3/8.4 across Laravel 11/12/13, with a
+  Redis service so the Redis store tests actually execute) and
+  `fix-php-code-style-issues.yml`. The README badges pointed at these
+  workflows already.
+
+### Changed
+
+- **Dropped Laravel 10** (end of life). `illuminate/contracts` and
+  `illuminate/support` now require `^11.0||^12.0||^13.0`.
+- Dev dependencies moved forward: Testbench `^9||^10||^11`, Pest `^3||^4`,
+  Larastan `^3`, Collision `^8.1.1`.
+- PHP stays at `^8.2` - Laravel 11 and 12 still run there. Laravel 13
+  itself requires PHP 8.3+, which Composer resolves for you.
+
 ## v0.1.0-beta.11 - 2026-08-10
 
 ### Added
