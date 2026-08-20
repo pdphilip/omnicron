@@ -8,7 +8,7 @@ use Illuminate\Support\Str;
 /**
  * Scaffold a task class - the one unified way a job is created, run and
  * managed. Lands wherever config('omnicron.task_namespace') points
- * (app/OmniCron by default); register it in config/omnicron.php and it is
+ * (App\Crons by default); register it in config/omnicron.php and it is
  * scheduled, locked, logged and health-checked like everything else.
  */
 class MakeTaskCommand extends Command
@@ -20,8 +20,8 @@ class MakeTaskCommand extends Command
     public function handle(): int
     {
         $class = Str::studly($this->argument('name'));
-        $namespace = trim(config('omnicron.task_namespace', 'App\\OmniCron'), '\\');
-        $directory = app_path(str_replace('\\', '/', Str::after($namespace, 'App\\')));
+        $namespace = trim(config('omnicron.task_namespace') ?: 'App\\Crons', '\\');
+        $directory = $this->directoryFor($namespace);
         $path = $directory.'/'.$class.'.php';
 
         if (file_exists($path)) {
@@ -50,5 +50,46 @@ class MakeTaskCommand extends Command
         $this->line('    ],');
 
         return self::SUCCESS;
+    }
+
+    /**
+     * Where the class file belongs, read off the app's psr-4 map rather than
+     * assumed. An app that keeps App\ in src/App gets src/App/Crons; assuming
+     * app_path() would drop the class in a directory the autoloader never
+     * looks at, and the failure would only show up as a missing class later.
+     */
+    private function directoryFor(string $namespace): string
+    {
+        foreach ($this->psr4Roots() as $prefix => $root) {
+            if (! str_starts_with($namespace.'\\', $prefix)) {
+                continue;
+            }
+
+            $tail = str_replace('\\', '/', substr($namespace, strlen($prefix)));
+
+            return base_path(trim($root, '/').($tail ? '/'.$tail : ''));
+        }
+
+        return app_path(str_replace('\\', '/', Str::after($namespace, 'App\\')));
+    }
+
+    /**
+     * psr-4 prefixes longest first, so App\Crons\ wins over a broader App\.
+     *
+     * @return array<string, string>
+     */
+    private function psr4Roots(): array
+    {
+        $composer = base_path('composer.json');
+
+        if (! is_file($composer)) {
+            return [];
+        }
+
+        $roots = json_decode(file_get_contents($composer), true)['autoload']['psr-4'] ?? [];
+        $roots = array_map(fn ($root) => is_array($root) ? reset($root) : $root, $roots);
+        uksort($roots, fn ($a, $b) => strlen($b) <=> strlen($a));
+
+        return $roots;
     }
 }

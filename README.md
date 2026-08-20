@@ -79,7 +79,7 @@ php artisan omnicron:task PurgeSessions
 ```
 
 ```php
-namespace App\OmniCron;
+namespace App\Crons;
 
 use PDPhilip\OmniCron\OmniTask;
 use PDPhilip\OmniCron\Schedule\Schedule;
@@ -105,8 +105,8 @@ class PurgeSessions extends OmniTask
 ```php
 // config/omnicron.php
 'tasks' => [
-    App\OmniCron\PurgeSessions::class,
-    App\OmniCron\CloseBillingCycles::class,
+    App\Crons\PurgeSessions::class,
+    App\Crons\CloseBillingCycles::class,
 ],
 ```
 
@@ -271,7 +271,7 @@ Counts of zero are information. An empty return is not.
 
 | Command | What it does |
 |---|---|
-| `omnicron:task {Name}` | Scaffold a new task class (into `task_namespace`, default `App\OmniCron`) |
+| `omnicron:task {Name}` | Scaffold a new task class (into `task_namespace`, default `App\Crons`) |
 | `omnicron:tick` | Run everything due. This is your one crontab entry. |
 | `omnicron:run {task}` | Run one task now, ignoring schedule and environment |
 | `omnicron:list` | Every registered task with its schedule and health |

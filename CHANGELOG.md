@@ -2,6 +2,27 @@
 
 All notable changes to `pdphilip/omnicron` are documented here.
 
+## v0.1.0-beta.13 - 2026-08-20
+
+### Changed
+
+- **`task_namespace` defaults to `App\Crons`** (was `App\OmniCron`). Crons are
+  crons; the folder should say so without the package's name in it. Apps that
+  already set `task_namespace` are unaffected, and nothing reads the namespace
+  at runtime - it only tells `omnicron:task` where to write.
+- **`omnicron:task` reads your psr-4 map** instead of assuming `app_path()`. An
+  app that keeps `App\` in `src/App` now gets `src/App/Crons`; before, the class
+  landed in a stray `app/` directory the autoloader never looks at, and the only
+  symptom was a class that could not be found later.
+
+### Fixed
+
+- **CI**: the Laravel 11 row could not resolve. Laravel 11 is past its security
+  window, so three advisories cover the whole branch with no 11.x release that
+  clears them, and Composer 2.9+ blocks advisory-affected versions while
+  resolving. The row now reports advisories instead of being blocked by them,
+  and the matrix no longer fails fast.
+
 ## v0.1.0-beta.12 - 2026-08-19
 
 ### Added
