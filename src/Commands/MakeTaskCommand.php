@@ -8,7 +8,7 @@ use Illuminate\Support\Str;
 /**
  * Scaffold a task class - the one unified way a job is created, run and
  * managed. Lands wherever config('omnicron.task_namespace') points
- * (App\Crons by default); register it in config/omnicron.php and it is
+ * (App\CronJobs by default); register it in config/omnicron.php and it is
  * scheduled, locked, logged and health-checked like everything else.
  */
 class MakeTaskCommand extends Command
@@ -20,7 +20,7 @@ class MakeTaskCommand extends Command
     public function handle(): int
     {
         $class = Str::studly($this->argument('name'));
-        $namespace = trim(config('omnicron.task_namespace') ?: 'App\\Crons', '\\');
+        $namespace = trim(config('omnicron.task_namespace') ?: 'App\\CronJobs', '\\');
         $directory = $this->directoryFor($namespace);
         $path = $directory.'/'.$class.'.php';
 
@@ -54,7 +54,7 @@ class MakeTaskCommand extends Command
 
     /**
      * Where the class file belongs, read off the app's psr-4 map rather than
-     * assumed. An app that keeps App\ in src/App gets src/App/Crons; assuming
+     * assumed. An app that keeps App\ in src/App gets src/App/CronJobs; assuming
      * app_path() would drop the class in a directory the autoloader never
      * looks at, and the failure would only show up as a missing class later.
      */
@@ -74,7 +74,7 @@ class MakeTaskCommand extends Command
     }
 
     /**
-     * psr-4 prefixes longest first, so App\Crons\ wins over a broader App\.
+     * psr-4 prefixes longest first, so App\CronJobs\ wins over a broader App\.
      *
      * @return array<string, string>
      */

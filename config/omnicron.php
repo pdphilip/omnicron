@@ -12,12 +12,12 @@ return [
     | Every registered task class. Create one with `php artisan omnicron:task`
     | and list it here - that is the whole registration. task_namespace is
     | where the scaffolder puts new classes; the directory comes from your
-    | composer psr-4 map, so App\Crons lands in app/Crons - or src/App/Crons
+    | composer psr-4 map, so App\CronJobs lands in app/CronJobs - or src/App/CronJobs
     | if that is where your App\ namespace points.
     */
-    'task_namespace' => 'App\\Crons',
+    'task_namespace' => 'App\\CronJobs',
     'tasks' => [
-        // App\Crons\PurgeSessions::class,
+        // App\CronJobs\PurgeSessions::class,
     ],
 
     /*

@@ -1,33 +1,33 @@
 <?php
 
 it('scaffolds into the configured task namespace, deriving the directory from it', function () {
-    config()->set('omnicron.task_namespace', 'App\Crons');
-    $path = app_path('Crons/ScaffoldProbe.php');
+    config()->set('omnicron.task_namespace', 'App\CronJobs');
+    $path = app_path('CronJobs/ScaffoldProbe.php');
     @unlink($path);
 
     $this->artisan('omnicron:task', ['name' => 'ScaffoldProbe'])->assertSuccessful();
 
     expect(file_get_contents($path))
-        ->toContain('namespace App\Crons;')
+        ->toContain('namespace App\CronJobs;')
         ->toContain('class ScaffoldProbe extends OmniTask');
 
     unlink($path);
-    @rmdir(app_path('Crons'));
+    @rmdir(app_path('CronJobs'));
 });
 
 it('refuses to overwrite an existing task class', function () {
-    config()->set('omnicron.task_namespace', 'App\Crons');
-    $path = app_path('Crons/ScaffoldProbe.php');
+    config()->set('omnicron.task_namespace', 'App\CronJobs');
+    $path = app_path('CronJobs/ScaffoldProbe.php');
 
     $this->artisan('omnicron:task', ['name' => 'ScaffoldProbe'])->assertSuccessful();
     $this->artisan('omnicron:task', ['name' => 'ScaffoldProbe'])->assertFailed();
 
     unlink($path);
-    @rmdir(app_path('Crons'));
+    @rmdir(app_path('CronJobs'));
 });
 
-it('defaults to the App\Crons namespace', function () {
-    expect(config('omnicron.task_namespace'))->toBe('App\Crons');
+it('defaults to the App\CronJobs namespace', function () {
+    expect(config('omnicron.task_namespace'))->toBe('App\CronJobs');
 });
 
 it('derives the directory from the psr-4 map rather than assuming app_path', function () {
@@ -40,13 +40,13 @@ it('derives the directory from the psr-4 map rather than assuming app_path', fun
 
     $this->artisan('omnicron:task', ['name' => 'PsrProbe'])->assertSuccessful();
 
-    expect(file_get_contents($base.'/src/App/Crons/PsrProbe.php'))
-        ->toContain('namespace App\Crons;')
+    expect(file_get_contents($base.'/src/App/CronJobs/PsrProbe.php'))
+        ->toContain('namespace App\CronJobs;')
         ->toContain('class PsrProbe extends OmniTask');
 
-    unlink($base.'/src/App/Crons/PsrProbe.php');
+    unlink($base.'/src/App/CronJobs/PsrProbe.php');
     unlink($base.'/composer.json');
-    @rmdir($base.'/src/App/Crons');
+    @rmdir($base.'/src/App/CronJobs');
     @rmdir($base.'/src/App');
     @rmdir($base.'/src');
     @rmdir($base);

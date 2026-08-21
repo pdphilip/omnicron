@@ -2,16 +2,16 @@
 
 All notable changes to `pdphilip/omnicron` are documented here.
 
-## v0.1.0-beta.13 - 2026-08-20
+## v0.1.0-beta.13 - 2026-08-21
 
 ### Changed
 
-- **`task_namespace` defaults to `App\Crons`** (was `App\OmniCron`). Crons are
+- **`task_namespace` defaults to `App\CronJobs`** (was `App\OmniCron`). Crons are
   crons; the folder should say so without the package's name in it. Apps that
   already set `task_namespace` are unaffected, and nothing reads the namespace
   at runtime - it only tells `omnicron:task` where to write.
 - **`omnicron:task` reads your psr-4 map** instead of assuming `app_path()`. An
-  app that keeps `App\` in `src/App` now gets `src/App/Crons`; before, the class
+  app that keeps `App\` in `src/App` now gets `src/App/CronJobs`; before, the class
   landed in a stray `app/` directory the autoloader never looks at, and the only
   symptom was a class that could not be found later.
 
